@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Print Pilot Login</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #1a1d22;
+      --line: rgba(255, 255, 255, 0.08);
+      --text: #edf1f6;
+      --muted: #8f98a3;
+      --accent: #58a6ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at top right, rgba(88, 166, 255, 0.12), transparent 22%), linear-gradient(180deg, #101319, #0f1115);
+      color: var(--text);
+      font-family: Inter, "Segoe UI", Tahoma, sans-serif;
+      padding: 16px;
+    }
+    .panel {
+      width: min(420px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(27, 30, 35, 0.98), rgba(22, 25, 29, 0.98));
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+    }
+    h1 { margin: 0; font-size: 1.2rem; }
+    p { margin: 0; color: var(--muted); font-size: 0.85rem; }
+    label { display: grid; gap: 6px; font-size: 0.8rem; color: var(--muted); }
+    input {
+      height: 38px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text);
+      padding: 0 10px;
+    }
+    button {
+      height: 38px;
+      border-radius: 6px;
+      border: 1px solid rgba(88, 166, 255, 0.35);
+      background: linear-gradient(180deg, rgba(66, 156, 255, 0.38), rgba(47, 129, 247, 0.2));
+      color: #eaf4ff;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    .status { min-height: 20px; font-size: 0.8rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main class="panel">
+    <h1>Print Pilot</h1>
+    <p>Sign in to register this device and access your printers.</p>
+    <label>
+      Device Name
+      <input id="device-name" type="text" placeholder="My phone">
+    </label>
+    <label>
+      Password
+      <input id="password" type="password" placeholder="Password from config.json">
+    </label>
+    <button id="login-button" type="button">Login</button>
+    <div class="status" id="status"></div>
+  </main>
+
+  <script>
+    function getOrCreateDeviceId() {
+      const key = "ff_device_id";
+      const existing = localStorage.getItem(key);
+      if (existing) return existing;
+      const id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : `device-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      localStorage.setItem(key, id);
+      return id;
+    }
+
+    async function checkExistingSession() {
+      const token = localStorage.getItem("ff_session_token");
+      if (!token) return;
+      try {
+        const res = await fetch("/api/auth/status", { headers: { "x-session-token": token } });
+        if (!res.ok) return;
+        const body = await res.json();
+        if (body.authenticated) {
+          location.replace("/");
+        }
+      } catch (_) {}
+    }
+
+    async function login() {
+      const status = document.getElementById("status");
+      const password = document.getElementById("password").value;
+      const deviceNameInput = document.getElementById("device-name");
+      const deviceName = deviceNameInput.value.trim() || "Web Device";
+      const deviceId = getOrCreateDeviceId();
+      status.textContent = "Signing in...";
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ password, deviceId, deviceName }),
+        });
+        const body = await res.json();
+        if (!res.ok || !body.token) {
+          throw new Error(body.message || "login failed");
+        }
+        localStorage.setItem("ff_session_token", body.token);
+        localStorage.setItem("ff_device_name", deviceName);
+        status.textContent = "Login success. Redirecting...";
+        setTimeout(() => location.replace("/"), 250);
+      } catch (error) {
+        status.textContent = `Login failed: ${error.message || error}`;
+      }
+    }
+
+    document.getElementById("login-button").addEventListener("click", login);
+    document.getElementById("password").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") login();
+    });
+    checkExistingSession();
+  </script>
+</body>
+</html>
+

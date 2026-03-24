@@ -8,6 +8,19 @@
   <meta http-equiv="Expires" content="0">
   <title>Flashforge Control</title>
   <style>
+    /* =========================================
+    📌 QUICK EDIT GUIDE
+
+    🔴 BUTTONS -> search "BUTTON SYSTEM"
+    🟡 LAYOUT -> search "LAYOUT"
+    🔵 CARDS -> search "CARDS / PANELS"
+    🟢 TABLE -> search "TABLE / FILE BROWSER"
+
+    ========================================= */
+
+    /* =========================================
+    ROOT VARIABLES
+    ========================================= */
     :root {
       --bg: #0f1115;
       --panel: #1a1d22;
@@ -26,6 +39,10 @@
       --shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
       --radius: 6px;
     }
+
+    /* =========================================
+    GLOBAL STYLES
+    ========================================= */
     * { box-sizing: border-box; }
     html, body {
       margin: 0;
@@ -36,6 +53,10 @@
     }
     body { padding: 18px; }
     button, input { font: inherit; }
+
+    /* =========================================
+    🟡 LAYOUT / STRUCTURE
+    ========================================= */
     .app-shell { width: min(1460px, 100%); min-height: calc(100vh - 36px); margin: 0 auto; display: grid; grid-template-columns: 224px minmax(0, 1fr); background: rgba(20, 23, 28, 0.94); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
     .sidebar { background: linear-gradient(180deg, #14171b 0%, #121519 100%); border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 14px 12px; gap: 14px; }
     .brand { display: flex; align-items: center; gap: 10px; padding: 8px 8px 10px; }
@@ -55,6 +76,94 @@
     .tiny-value { font-size: 0.86rem; font-weight: 700; }
     .main { display: flex; flex-direction: column; min-width: 0; background: linear-gradient(180deg, rgba(21, 24, 29, 0.96) 0%, rgba(15, 17, 21, 0.98) 100%); }
     .topbar { min-height: 64px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); background: rgba(19, 22, 27, 0.86); }
+    .topbar-start { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .mobile-nav-toggle {
+      display: none;
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text);
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .mobile-sidebar-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 10, 14, 0.56);
+      z-index: 58;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 120ms ease;
+    }
+    .mobile-tabbar {
+      display: none;
+      position: fixed;
+      left: 8px;
+      right: 8px;
+      bottom: calc(8px + env(safe-area-inset-bottom));
+      z-index: 65;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(24, 27, 32, 0.98), rgba(19, 22, 27, 0.98));
+      box-shadow: var(--shadow);
+      padding: 6px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+    }
+    .mobile-tab-item {
+      appearance: none;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 7px;
+      min-height: 44px;
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: 2px;
+      cursor: pointer;
+      transition: border-color 120ms ease, color 120ms ease, background 120ms ease, box-shadow 120ms ease;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .mobile-tab-item svg {
+      width: 15px;
+      height: 15px;
+      color: currentColor;
+    }
+    .mobile-tab-item.active {
+      color: #eaf4ff;
+      border-color: rgba(88, 166, 255, 0.34);
+      background: linear-gradient(180deg, rgba(66, 156, 255, 0.22), rgba(47, 129, 247, 0.1));
+      box-shadow: 0 0 0 1px rgba(88, 166, 255, 0.12), 0 0 16px rgba(88, 166, 255, 0.14);
+    }
+    .mobile-refresh-button {
+      display: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: 1px solid rgba(88, 166, 255, 0.35);
+      background: rgba(88, 166, 255, 0.08);
+      color: #57c6ff;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .more-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .more-link {
+      min-height: 48px;
+      font-size: 0.76rem;
+    }
+
     .page-title { display: grid; gap: 2px; min-width: 0; }
     .page-title h1 { margin: 0; font-size: 1rem; font-weight: 700; }
     .page-title p { margin: 0; color: var(--muted); font-size: 0.78rem; }
@@ -78,6 +187,10 @@
     .hidden { display: none !important; }
     .dashboard-grid { display: grid; grid-template-columns: 1.1fr 0.88fr 0.88fr; gap: 16px; align-items: start; }
     .column, .progress-stack, .metric-stack, .control-stack, .info-list, .camera-shell, .files-layout { display: grid; gap: 12px; min-width: 0; }
+
+    /* =========================================
+    🔵 CARDS / PANELS
+    ========================================= */
     .card { background: linear-gradient(180deg, rgba(27, 30, 35, 0.98) 0%, rgba(22, 25, 29, 0.98) 100%); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.015); overflow: hidden; }
     .card-head { padding: 12px 14px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .card-title { margin: 0; font-size: 0.8rem; font-weight: 700; }
@@ -135,6 +248,124 @@
     .action-button { width: 100%; height: 34px; border: 1px solid var(--line); border-radius: 5px; background: rgba(255, 255, 255, 0.02); color: var(--text); font-size: 0.76rem; font-weight: 650; }
     .file-action.danger, .action-button.danger { color: #f3c6c6; border-color: rgba(211, 95, 95, 0.18); background: rgba(211, 95, 95, 0.08); }
     .action-status { min-height: 16px; color: var(--muted); font-size: 0.72rem; }
+
+    /* =========================================
+    🔴 BUTTON SYSTEM (EDIT HERE)
+    ========================================= */
+    .btn,
+    .toolbar-button,
+    .file-action,
+    .action-button,
+    .filter-chip {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+      transform: translateZ(0);
+      transition: border-color 140ms ease, color 140ms ease, background 140ms ease, box-shadow 140ms ease, transform 120ms ease, opacity 120ms ease;
+    }
+    .btn:active,
+    .toolbar-button:active,
+    .file-action:active,
+    .action-button:active,
+    .filter-chip:active {
+      transform: translateY(1px) scale(0.99);
+    }
+    .btn::before,
+    .toolbar-button::before,
+    .file-action::before,
+    .action-button::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: -52%;
+      width: 48%;
+      background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.25) 50%, transparent 100%);
+      pointer-events: none;
+      opacity: 0;
+      transform: skewX(-18deg);
+    }
+    .btn:hover::before,
+    .toolbar-button:hover::before,
+    .file-action:hover::before,
+    .action-button:hover::before {
+      opacity: 1;
+      animation: btn-sheen 760ms ease;
+    }
+    @keyframes btn-sheen {
+      from { left: -52%; }
+      to { left: 115%; }
+    }
+    @keyframes btn-pulse {
+      from { box-shadow: 0 0 0 1px rgba(88, 166, 255, 0.08), 0 0 12px rgba(88, 166, 255, 0.12); }
+      to { box-shadow: 0 0 0 1px rgba(88, 166, 255, 0.18), 0 0 22px rgba(88, 166, 255, 0.24); }
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text);
+      min-height: 34px;
+      padding: 0 12px;
+      font-size: 0.76rem;
+      font-weight: 650;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+    }
+    .btn:hover {
+      border-color: rgba(88, 166, 255, 0.34);
+      box-shadow: 0 0 0 1px rgba(88, 166, 255, 0.12), 0 0 20px rgba(88, 166, 255, 0.18);
+      transform: translateY(-1px);
+    }
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+      box-shadow: none;
+    }
+    .btn-primary {
+      color: #eaf4ff;
+      background: linear-gradient(180deg, rgba(66, 156, 255, 0.45), rgba(47, 129, 247, 0.2));
+      border-color: rgba(88, 166, 255, 0.45);
+      text-shadow: 0 0 12px rgba(160, 212, 255, 0.35);
+    }
+    .btn-primary:hover {
+      animation: btn-pulse 1.2s ease-in-out infinite alternate;
+    }
+    .btn-secondary {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+    .btn-danger {
+      color: #ffd9d9;
+      border-color: rgba(240, 88, 88, 0.35);
+      background: linear-gradient(180deg, rgba(240, 88, 88, 0.2), rgba(211, 95, 95, 0.1));
+      text-shadow: 0 0 10px rgba(240, 88, 88, 0.25);
+    }
+    .btn-danger:hover {
+      box-shadow: 0 0 0 1px rgba(240, 88, 88, 0.22), 0 0 20px rgba(240, 88, 88, 0.22);
+    }
+    .control-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .control-buttons .btn {
+      flex: 1 1 120px;
+    }
+    .temp-quick-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .temp-quick-actions .btn {
+      flex: 1 1 120px;
+      min-height: 30px;
+      font-size: 0.72rem;
+      padding: 0 10px;
+    }
+
     .temp-modal {
       position: fixed;
       inset: 0;
@@ -213,10 +444,19 @@
       color: var(--soft);
       font-size: 0.71rem;
     }
+
+    /* =========================================
+    🟢 TABLE / FILE BROWSER
+    ========================================= */
     .files-toolbar, .files-toolbar-left, .files-toolbar-right, .upload-row, .file-actions, .setting-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .files-toolbar { justify-content: space-between; }
     .filter-chip { height: 32px; padding: 0 11px; font-size: 0.74rem; font-weight: 650; color: var(--muted); }
-    .filter-chip.active { color: var(--text); border-color: rgba(88, 166, 255, 0.2); background: rgba(88, 166, 255, 0.08); }
+    .filter-chip.active {
+      color: #eaf4ff;
+      border-color: rgba(88, 166, 255, 0.35);
+      background: linear-gradient(180deg, rgba(66, 156, 255, 0.3), rgba(47, 129, 247, 0.14));
+      box-shadow: 0 0 0 1px rgba(88, 166, 255, 0.12), 0 0 18px rgba(88, 166, 255, 0.16);
+    }
     .upload-row input[type="file"] { max-width: 320px; color: var(--muted); font-size: 0.75rem; }
     .setting-row { justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.035); }
     .setting-row:last-child { border-bottom: 0; }
@@ -292,9 +532,198 @@
     }
     .empty-state { padding: 28px 20px; color: var(--muted); text-align: center; font-size: 0.78rem; }
     .footer-strip { color: var(--muted); font-size: 0.72rem; }
+
+    /* =========================================
+    UTILITIES / RESPONSIVE
+    ========================================= */
     @media (max-width: 1180px) { .dashboard-grid { grid-template-columns: 1fr; } }
-    @media (max-width: 980px) { .app-shell { grid-template-columns: 1fr; } .sidebar { border-right: 0; border-bottom: 1px solid var(--line); } }
-    @media (max-width: 760px) { body { padding: 10px; } .topbar, .files-toolbar, .upload-row { align-items: flex-start; } .toolbar-search { min-width: 0; width: 100%; } .temperature-grid, .mini-grid { grid-template-columns: 1fr; } .table-wrap { overflow-x: auto; } }
+    @media (max-width: 980px) {
+      body { padding: 10px; }
+      .app-shell { grid-template-columns: 1fr; min-height: calc(100vh - 20px); position: relative; overflow: hidden; }
+      .mobile-nav-toggle { display: inline-flex; }
+      .topbar { position: sticky; top: 0; z-index: 40; }
+      .sidebar {
+        position: fixed;
+        left: 10px;
+        top: 10px;
+        bottom: 10px;
+        width: min(320px, calc(100vw - 20px));
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        z-index: 60;
+        transform: translateX(-112%);
+        transition: transform 140ms ease;
+      }
+      .app-shell.mobile-nav-open .sidebar { transform: translateX(0); }
+      .app-shell.mobile-nav-open .mobile-sidebar-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .sidebar-status { margin-top: auto; }
+      .content { padding: 12px; }
+    }
+    @media (max-width: 760px) {
+      body {
+        padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+      }
+      .mobile-tabbar { display: grid; }
+      .topbar, .files-toolbar, .upload-row, .files-toolbar-left, .files-toolbar-right { align-items: stretch; }
+      .topbar {
+        padding: 10px 12px;
+        min-height: 60px;
+        background: #071523;
+        border-bottom-color: rgba(255, 255, 255, 0.09);
+      }
+      .topbar-start { width: 100%; }
+      .page-title h1 { font-size: 1.95rem; font-weight: 760; letter-spacing: -0.02em; }
+      .page-title p { font-size: 0.72rem; }
+      .page-title p { display: none; }
+      .mobile-refresh-button { display: inline-flex; }
+      #refresh-chip { display: none; }
+      #last-updated { display: none; }
+      .mobile-nav-toggle { display: none; }
+      .toolbar { width: auto; justify-content: flex-end; gap: 8px; }
+      .toolbar-chip { font-size: 0.7rem; min-height: 32px; }
+      .toolbar-search { min-width: 0; width: 100%; min-height: 38px; }
+      .toolbar-search input { font-size: 0.82rem; }
+      .content { padding-bottom: 84px; }
+      #view-dashboard .dashboard-grid { gap: 10px; }
+      #view-dashboard .column,
+      #view-dashboard .progress-stack,
+      #view-dashboard .metric-stack,
+      #view-dashboard .control-stack,
+      #view-dashboard .camera-shell,
+      #view-dashboard .info-list {
+        gap: 8px;
+      }
+      #view-dashboard .card-subtitle { display: none; }
+      #view-dashboard .hero-title {
+        font-size: 1.15rem;
+        margin-bottom: 8px;
+      }
+      #view-dashboard .card-head {
+        padding: 9px 11px 8px;
+      }
+      #view-dashboard .card-body {
+        padding: 9px 11px 11px;
+      }
+      /* Reduce dashboard crowd on phones; details remain in Devices/Activity pages */
+      #dashboard-system-card,
+      #dashboard-coordinates-card,
+      #dashboard-session-card {
+        display: none;
+      }
+      #dashboard-camera-card { display: none; }
+      .app-shell.mobile-focus-camera #view-dashboard .column > .card { display: none; }
+      .app-shell.mobile-focus-camera #dashboard-camera-card { display: block; }
+      .app-shell.mobile-focus-camera #view-dashboard .dashboard-grid { grid-template-columns: 1fr; }
+      .temperature-grid, .mini-grid { grid-template-columns: 1fr; }
+      .card-head { padding: 10px 12px 8px; flex-wrap: wrap; }
+      .card-body { padding: 10px 12px 12px; }
+      .temp-quick-actions .btn, .control-buttons .btn { flex: 1 1 calc(50% - 6px); }
+      .control-buttons .btn:last-child { flex-basis: 100%; }
+      .setting-row { gap: 8px; flex-direction: column; align-items: flex-start; }
+      .setting-select, .setting-control { width: 100%; }
+      .upload-row input[type="file"] { max-width: 100%; width: 100%; }
+      .footer-strip { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .more-grid { grid-template-columns: 1fr; }
+      #view-files .files-toolbar,
+      #view-files .upload-row,
+      #view-files #upload-file-status,
+      #view-files #file-info-panel,
+      #view-files .footer-strip {
+        display: none !important;
+      }
+
+      .table-wrap {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+      }
+      .table-wrap table,
+      .table-wrap tbody,
+      .table-wrap tr,
+      .table-wrap td {
+        display: block;
+        width: 100%;
+      }
+      .table-wrap table { min-width: 0; }
+      .table-wrap thead { display: none; }
+      .table-wrap tbody {
+        display: grid;
+        gap: 10px;
+      }
+      .table-wrap tbody tr {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: linear-gradient(180deg, rgba(27, 30, 35, 0.98), rgba(22, 25, 29, 0.98));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.015);
+        padding: 8px 10px;
+      }
+      .table-wrap tbody td {
+        border: 0;
+        white-space: normal;
+        padding: 6px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .table-wrap tbody td::before {
+        content: attr(data-label);
+        color: var(--soft);
+        font-size: 0.66rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .table-wrap tbody td.file-name-cell {
+        padding-top: 2px;
+      }
+      .table-wrap tbody td.empty-state {
+        display: block;
+        text-align: center;
+        padding: 28px 12px;
+      }
+      .table-wrap tbody td.empty-state::before {
+        content: "[ ]";
+        display: block;
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+        opacity: 0.6;
+      }
+      .table-wrap tbody td.file-name-cell::before {
+        display: none;
+      }
+      .table-wrap tbody td.actions-cell {
+        padding-top: 8px;
+      }
+      .table-wrap tbody td.actions-cell::before {
+        display: none;
+      }
+      .file-name-wrap {
+        width: 100%;
+        align-items: flex-start;
+      }
+      .file-thumb {
+        width: 38px;
+        height: 38px;
+      }
+      .file-actions {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 6px;
+      }
+      .file-action {
+        min-height: 34px;
+        padding: 0 10px;
+      }
+      .nav-item, .toolbar-button, .filter-chip, .action-button, .file-action, .btn {
+        min-height: 38px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -315,14 +744,26 @@
       <div class="sidebar-spacer"></div>
       <div class="sidebar-status"><div class="tiny-kicker">Live Sync</div><div class="tiny-value" id="sidebar-refresh">Waiting for first refresh...</div><div class="status-badge ready" id="sidebar-online">Checking...</div></div>
     </aside>
+    <div class="mobile-sidebar-backdrop" id="mobile-sidebar-backdrop"></div>
 
     <section class="main">
       <header class="topbar">
-        <div class="page-title"><h1 id="page-heading">Dashboard</h1><p id="page-subheading">Dense monitoring panels and live printer controls.</p></div>
-        <div class="toolbar"><div class="toolbar-chip" id="refresh-chip"><span class="dot"></span><span id="refresh-state">Sync idle</span></div><div class="toolbar-chip" id="last-updated">Never updated</div></div>
+        <div class="topbar-start">
+          <button class="mobile-nav-toggle" id="mobile-nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false">
+            <svg viewBox="0 0 16 16" width="15" height="15" fill="none" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </button>
+          <div class="page-title"><h1 id="page-heading">Dashboard</h1><p id="page-subheading">Dense monitoring panels and live printer controls.</p></div>
+        </div>
+        <div class="toolbar"><button class="mobile-refresh-button" id="mobile-refresh-button" type="button" aria-label="Refresh data">⟳</button><div class="toolbar-chip" id="refresh-chip"><span class="dot"></span><span id="refresh-state">Sync idle</span></div><div class="toolbar-chip" id="last-updated">Never updated</div></div>
       </header>
 
+      <!-- =========================
+           🟡 MAIN CONTENT VIEWS
+           ========================= -->
       <div class="content">
+        <!-- =========================
+             🔵 DASHBOARD CARDS / PANELS
+             ========================= -->
         <section id="view-dashboard">
           <div class="dashboard-grid">
             <div class="column">
@@ -334,24 +775,37 @@
                 <div class="card-head"><div><h2 class="card-title">Progress</h2><div class="card-subtitle">Current layer and transfer completion.</div></div></div>
                 <div class="card-body progress-stack"><div class="progress-head"><span>Layer Progress</span><strong id="layer-text">0 / 0</strong></div><div class="meter"><div class="meter-fill" id="layer-bar"></div></div><div class="progress-head"><span>Byte Progress</span><strong id="byte-text">0 / 0</strong></div><div class="meter"><div class="meter-fill" id="byte-bar"></div></div><div class="mini-grid"><div class="mini-tile"><span>Machine State</span><strong id="machine-status">-</strong></div><div class="mini-tile"><span>Move Mode</span><strong id="move-mode">-</strong></div></div></div>
               </section>
+              <!-- =========================
+                   🔴 CONTROL BUTTONS
+                   ========================= -->
               <section class="card">
                 <div class="card-head"><div><h2 class="card-title">Controls</h2><div class="card-subtitle">Direct job actions for the active print.</div></div></div>
-                <div class="card-body control-stack"><button class="action-button" id="pause-job-button" type="button">Pause Print</button><button class="action-button primary" id="resume-job-button" type="button">Resume Print</button><div class="action-status" id="job-action-status"></div></div>
+                <div class="card-body control-stack">
+                  <div class="control-buttons">
+                    <button class="btn btn-primary action-button primary" id="resume-job-button" type="button">▶ Resume</button>
+                    <button class="btn btn-secondary action-button" id="pause-job-button" type="button">⏸ Pause</button>
+                    <button class="btn btn-danger action-button danger" id="stop-job-button" type="button">⛔ Stop</button>
+                  </div>
+                  <div class="action-status" id="job-action-status"></div>
+                </div>
               </section>
             </div>
 
             <div class="column">
-              <section class="card"><div class="card-head"><div><h2 class="card-title">Temperature</h2><div class="card-subtitle">Nozzle and bed setpoint tracking.</div></div></div><div class="card-body"><div class="temperature-grid" id="temperatures-grid"><div class="temp-ring"><button class="ring ring-button" type="button" style="--pct:0"><span><strong>0 C</strong><small>T0</small></span></button></div><div class="temp-ring"><button class="ring ring-button" type="button" style="--pct:0"><span><strong>0 C</strong><small>Bed</small></span></button></div></div><div style="height: 8px"></div><div class="action-status" id="temp-action-status">Click Nozzle or Bed to change target temperature.</div></div></section>
-              <section class="card"><div class="card-head"><div><h2 class="card-title">System Info</h2><div class="card-subtitle">Compact host-style metrics and network activity.</div></div></div><div class="card-body metric-stack"><div class="metric-head"><span>CPU</span><strong id="cpu-text">0%</strong></div><div class="meter"><div class="meter-fill" id="cpu-bar"></div></div><div class="metric-head"><span>RAM</span><strong id="ram-text">0%</strong></div><div class="meter"><div class="meter-fill" id="ram-bar"></div></div><div class="metric-head"><span>Network</span><strong id="network-state">Connected</strong></div><div class="network-chart"><svg viewBox="0 0 280 92" preserveAspectRatio="none" aria-hidden="true"><path class="area" id="network-area" d="M0,92 L0,70 L40,72 L80,62 L120,66 L160,44 L200,54 L240,40 L280,48 L280,92 Z"></path><path class="line" id="network-line" d="M0,70 L40,72 L80,62 L120,66 L160,44 L200,54 L240,40 L280,48"></path></svg></div><div class="mini-grid"><div class="mini-tile"><span>MAC Address</span><strong id="mac-address">-</strong></div><div class="mini-tile"><span>Tool Count</span><strong id="tool-count">-</strong></div></div></div></section>
-              <section class="card"><div class="card-head"><div><h2 class="card-title">Coordinates</h2><div class="card-subtitle">Reported print head position.</div></div></div><div class="card-body mini-grid"><div class="mini-tile"><span>X</span><strong id="pos-x">-</strong></div><div class="mini-tile"><span>Y</span><strong id="pos-y">-</strong></div><div class="mini-tile"><span>Z</span><strong id="pos-z">-</strong></div><div class="mini-tile"><span>Printer</span><strong id="hero-printer">main</strong></div></div></section>
+              <section class="card" id="dashboard-temperature-card"><div class="card-head"><div><h2 class="card-title">Temperature</h2><div class="card-subtitle">Nozzle and bed setpoint tracking.</div></div></div><div class="card-body"><div class="temperature-grid" id="temperatures-grid"><div class="temp-ring"><button class="ring ring-button" type="button" style="--pct:0"><span><strong>0 C</strong><small>T0</small></span></button></div><div class="temp-ring"><button class="ring ring-button" type="button" style="--pct:0"><span><strong>0 C</strong><small>Bed</small></span></button></div></div><div style="height: 8px"></div><div class="temp-quick-actions"><button class="btn btn-secondary" id="temp-off-nozzle" type="button">Nozzle Off</button><button class="btn btn-secondary" id="temp-off-bed" type="button">Bed Off</button><button class="btn btn-danger" id="temp-off-all" type="button">All Off</button></div><div style="height: 8px"></div><div class="action-status" id="temp-action-status">Click Nozzle or Bed to change target temperature.</div></div></section>
+              <section class="card" id="dashboard-system-card"><div class="card-head"><div><h2 class="card-title">System Info</h2><div class="card-subtitle">Compact host-style metrics and network activity.</div></div></div><div class="card-body metric-stack"><div class="metric-head"><span>CPU</span><strong id="cpu-text">0%</strong></div><div class="meter"><div class="meter-fill" id="cpu-bar"></div></div><div class="metric-head"><span>RAM</span><strong id="ram-text">0%</strong></div><div class="meter"><div class="meter-fill" id="ram-bar"></div></div><div class="metric-head"><span>Network</span><strong id="network-state">Connected</strong></div><div class="network-chart"><svg viewBox="0 0 280 92" preserveAspectRatio="none" aria-hidden="true"><path class="area" id="network-area" d="M0,92 L0,70 L40,72 L80,62 L120,66 L160,44 L200,54 L240,40 L280,48 L280,92 Z"></path><path class="line" id="network-line" d="M0,70 L40,72 L80,62 L120,66 L160,44 L200,54 L240,40 L280,48"></path></svg></div><div class="mini-grid"><div class="mini-tile"><span>MAC Address</span><strong id="mac-address">-</strong></div><div class="mini-tile"><span>Tool Count</span><strong id="tool-count">-</strong></div></div></div></section>
+              <section class="card" id="dashboard-coordinates-card"><div class="card-head"><div><h2 class="card-title">Coordinates</h2><div class="card-subtitle">Reported print head position.</div></div></div><div class="card-body mini-grid"><div class="mini-tile"><span>X</span><strong id="pos-x">-</strong></div><div class="mini-tile"><span>Y</span><strong id="pos-y">-</strong></div><div class="mini-tile"><span>Z</span><strong id="pos-z">-</strong></div><div class="mini-tile"><span>Printer</span><strong id="hero-printer">main</strong></div></div></section>
             </div>
             <div class="column">
-              <section class="card"><div class="card-head"><div><h2 class="card-title">Camera Feed</h2><div class="card-subtitle">Live printer view in a compact monitoring frame.</div></div><label class="camera-toggle"><input id="camera-toggle" type="checkbox" checked><span id="camera-toggle-label">Camera On</span></label></div><div class="card-body camera-shell"><div class="camera-frame"><img id="camera-image" alt="Printer camera feed"><div class="camera-fallback" id="camera-fallback">Waiting for camera stream.</div></div><div class="camera-strip"><span id="hero-connection">Checking connection</span><span id="hero-file">Idle</span></div></div></section>
-              <section class="card"><div class="card-head"><div><h2 class="card-title">Session Summary</h2><div class="card-subtitle">Small dense rows, closer to desktop dashboards than web cards.</div></div></div><div class="card-body info-list"><div class="info-row"><span>Current Job</span><span id="job-status">-</span></div><div class="info-row"><span>Nozzle</span><span id="job-temp-t0">-</span></div><div class="info-row"><span>Bed</span><span id="job-temp-b">-</span></div><div class="info-row"><span>Layers</span><span id="job-layer">-</span></div><div class="info-row"><span>Bytes</span><span id="job-byte">-</span></div></div></section>
+              <section class="card" id="dashboard-camera-card"><div class="card-head"><div><h2 class="card-title">Camera Feed</h2><div class="card-subtitle">Live printer view in a compact monitoring frame.</div></div><label class="camera-toggle"><input id="camera-toggle" type="checkbox" checked><span id="camera-toggle-label">Camera On</span></label></div><div class="card-body camera-shell"><div class="camera-frame"><img id="camera-image" alt="Printer camera feed"><div class="camera-fallback" id="camera-fallback">Waiting for camera stream.</div></div><div class="camera-strip"><span id="hero-connection">Checking connection</span><span id="hero-file">Idle</span></div></div></section>
+              <section class="card" id="dashboard-session-card"><div class="card-head"><div><h2 class="card-title">Session Summary</h2><div class="card-subtitle">Small dense rows, closer to desktop dashboards than web cards.</div></div></div><div class="card-body info-list"><div class="info-row"><span>Current Job</span><span id="job-status">-</span></div><div class="info-row"><span>Nozzle</span><span id="job-temp-t0">-</span></div><div class="info-row"><span>Bed</span><span id="job-temp-b">-</span></div><div class="info-row"><span>Layers</span><span id="job-layer">-</span></div><div class="info-row"><span>Bytes</span><span id="job-byte">-</span></div></div></section>
             </div>
           </div>
         </section>
 
+        <!-- =========================
+             🟢 FILE BROWSER TABLE
+             ========================= -->
         <section id="view-files" class="hidden">
           <div class="files-layout">
             <section class="card">
@@ -364,10 +818,10 @@
                     <button class="filter-chip" type="button" data-filter="ready">Ready</button>
                     <button class="filter-chip" type="button" data-filter="active">In Progress</button>
                   </div>
-                  <div class="files-toolbar-right"><button class="toolbar-button" id="refresh-files-button" type="button">Refresh</button></div>
+                  <div class="files-toolbar-right"><button class="btn btn-secondary toolbar-button" id="refresh-files-button" type="button">Refresh</button></div>
                 </div>
                 <div style="height: 12px"></div>
-                <div class="upload-row"><input id="upload-file-input" type="file" accept=".3mf,.gcode,.gx,.g"><label><input id="upload-print-now" type="checkbox"><span>Print after upload</span></label><button class="toolbar-button primary" id="upload-file-button" type="button">Upload</button></div>
+                <div class="upload-row"><input id="upload-file-input" type="file" accept=".3mf,.gcode,.gx,.g"><label><input id="upload-print-now" type="checkbox"><span>Print after upload</span></label><button class="btn btn-primary toolbar-button primary" id="upload-file-button" type="button">Upload</button></div>
                 <div style="height: 10px"></div>
                 <div class="action-status" id="upload-file-status"></div>
                 <div style="height: 10px"></div>
@@ -432,6 +886,21 @@
           </div>
         </section>
 
+        <section id="view-more" class="hidden">
+          <div class="files-layout">
+            <section class="card">
+              <div class="card-head"><div><h2 class="card-title">More</h2><div class="card-subtitle">Open less-used pages without crowding mobile tabs.</div></div></div>
+              <div class="card-body">
+                <div class="more-grid">
+                  <button class="btn btn-secondary more-link" id="more-open-devices" type="button">Devices</button>
+                  <button class="btn btn-secondary more-link" id="more-open-activity" type="button">Activity</button>
+                  <button class="btn btn-secondary more-link" id="more-open-settings" type="button">Settings</button>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
         <section id="view-settings" class="hidden">
           <div class="files-layout">
             <section class="card">
@@ -466,9 +935,30 @@
                 <div class="setting-row">
                   <div class="setting-copy">
                     <div class="setting-title">Primary Printer</div>
-                    <div class="setting-subtitle">Read-only current printer target for this session.</div>
+                    <div class="setting-subtitle">Choose which configured printer this session controls.</div>
                   </div>
-                  <input class="setting-control" id="settings-printer-id" type="text" value="main" readonly>
+                  <select class="setting-select" id="settings-printer-id"></select>
+                </div>
+                <div class="setting-row">
+                  <div class="setting-copy">
+                    <div class="setting-title">Add Printer</div>
+                    <div class="setting-subtitle">Printers are now managed in-app and saved to config.json.</div>
+                  </div>
+                  <div style="display:grid; gap:8px; width:min(520px,100%);">
+                    <input class="setting-control" id="add-printer-id" type="text" placeholder="printer id (example: main2)">
+                    <input class="setting-control" id="add-printer-ip" type="text" placeholder="printer ip (example: 192.168.1.28)">
+                    <input class="setting-control" id="add-printer-serial" type="text" placeholder="serial number (SN...)">
+                    <input class="setting-control" id="add-printer-checkcode" type="text" placeholder="check code">
+                    <button class="btn btn-primary" id="add-printer-button" type="button">Add Printer</button>
+                    <div class="action-status" id="add-printer-status"></div>
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <div class="setting-copy">
+                    <div class="setting-title">Configured Printers</div>
+                    <div class="setting-subtitle">Delete printers directly from the app.</div>
+                  </div>
+                  <div id="configured-printers-list" style="display:grid; gap:8px; width:min(520px,100%);"></div>
                 </div>
               </div>
             </section>
@@ -477,6 +967,24 @@
       </div>
     </section>
   </main>
+  <nav class="mobile-tabbar" aria-label="Mobile navigation">
+    <button class="mobile-tab-item active" type="button" data-view="dashboard">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2.5 2.5h4.5v4.5H2.5zm6.5 0h4.5v4.5H9zm-6.5 6.5h4.5v4.5H2.5zm6.5 0h4.5v4.5H9z" fill="currentColor"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <button class="mobile-tab-item" type="button" data-view="camera">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.2 5.2h2l.8-1.3h3.8l.8 1.3h2.2c.7 0 1.2.5 1.2 1.2v4.4c0 .7-.5 1.2-1.2 1.2H3.2c-.7 0-1.2-.5-1.2-1.2V6.4c0-.7.5-1.2 1.2-1.2Z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8.6" r="2" stroke="currentColor" stroke-width="1.2"/></svg>
+      <span>Camera</span>
+    </button>
+    <button class="mobile-tab-item" type="button" data-view="files">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2.5 3.5A1.5 1.5 0 0 1 4 2h2.4l1.2 1.4H12A1.5 1.5 0 0 1 13.5 5v6A1.5 1.5 0 0 1 12 12.5H4A1.5 1.5 0 0 1 2.5 11z" fill="currentColor"/></svg>
+      <span>Files</span>
+    </button>
+    <button class="mobile-tab-item" type="button" data-view="settings">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.8v2.1M8 12.1v2.1M1.8 8h2.1M12.1 8h2.1M3.4 3.4l1.5 1.5M11.1 11.1l1.5 1.5M3.4 12.6l1.5-1.5M11.1 4.9l1.5-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      <span>Settings</span>
+    </button>
+  </nav>
   <div class="temp-modal hidden" id="temp-modal" aria-hidden="true">
     <div class="temp-modal-card" role="dialog" aria-modal="true" aria-labelledby="temp-modal-title">
       <div class="temp-modal-head">
@@ -494,8 +1002,8 @@
           <input class="temp-modal-input" id="temp-modal-input" type="number" min="0" step="1" inputmode="numeric" placeholder="Target C">
           <div class="temp-modal-hint" id="temp-modal-hint">Allowed range: 0 to 300 C</div>
           <div class="temp-modal-row">
-            <button class="toolbar-button" id="temp-modal-cancel" type="button">Cancel</button>
-            <button class="toolbar-button primary" id="temp-modal-apply" type="button">Apply</button>
+            <button class="btn btn-secondary toolbar-button" id="temp-modal-cancel" type="button">Cancel</button>
+            <button class="btn btn-primary toolbar-button primary" id="temp-modal-apply" type="button">Apply</button>
           </div>
         </div>
       </div>
@@ -503,7 +1011,10 @@
   </div>
 
   <script>
-    const printerId = "main";
+    const nativeFetch = window.fetch.bind(window);
+    let sessionToken = localStorage.getItem("ff_session_token") || "";
+    let printerId = localStorage.getItem("ff_active_printer") || "main";
+    let availablePrinters = [];
     let refreshInFlight = false;
     let lastUpdatedAt = null;
     let cameraEnabled = true;
@@ -513,6 +1024,25 @@
     let currentFilter = "all";
     let lastFileAction = "No selection";
     let refreshTimer = null;
+
+    if (!sessionToken) {
+      location.replace("/login");
+    }
+
+    window.fetch = async (input, init = {}) => {
+      const requestUrl = typeof input === "string" ? input : (input?.url || "");
+      const headers = new Headers(init.headers || {});
+      if (sessionToken && requestUrl.startsWith("/api/")) {
+        headers.set("x-session-token", sessionToken);
+      }
+      const response = await nativeFetch(input, { ...init, headers });
+      if (response.status === 401 && requestUrl.startsWith("/api/")) {
+        localStorage.removeItem("ff_session_token");
+        sessionToken = "";
+        location.replace("/login");
+      }
+      return response;
+    };
 
     function loadUiPrefs() {
       try {
@@ -533,6 +1063,75 @@
       } catch (_) {}
     }
 
+    async function ensureAuthSession() {
+      if (!sessionToken) {
+        location.replace("/login");
+        return false;
+      }
+      try {
+        const res = await fetch("/api/auth/status");
+        if (!res.ok) {
+          throw new Error(`status ${res.status}`);
+        }
+        const body = await res.json();
+        if (!body.authenticated) {
+          throw new Error("not authenticated");
+        }
+        return true;
+      } catch (_) {
+        localStorage.removeItem("ff_session_token");
+        sessionToken = "";
+        location.replace("/login");
+        return false;
+      }
+    }
+
+    async function loadConfiguredPrinters() {
+      const res = await fetch("/api/printers/configured");
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || `Failed to load printers (${res.status})`);
+      }
+      const printers = await res.json();
+      availablePrinters = printers.map(p => p.id);
+      if (!availablePrinters.length) {
+        availablePrinters = [printerId];
+      }
+      if (!availablePrinters.includes(printerId)) {
+        printerId = availablePrinters[0];
+      }
+      localStorage.setItem("ff_active_printer", printerId);
+      const list = document.getElementById("configured-printers-list");
+      if (list) {
+        list.innerHTML = printers.length
+          ? printers.map(printer => `<div class="mini-tile"><span>${escapeHtml(printer.id)}</span><strong>${escapeHtml(printer.ip || "-")}</strong><button class="btn btn-danger" type="button" data-remove-printer="${escapeHtml(printer.id)}">Delete</button></div>`).join("")
+          : `<div class="mini-tile"><span>No printers</span><strong>Add one above.</strong></div>`;
+      }
+      document.querySelectorAll("[data-remove-printer]").forEach(button => {
+        button.addEventListener("click", async () => {
+          const removeId = button.getAttribute("data-remove-printer");
+          const status = document.getElementById("add-printer-status");
+          status.textContent = `Removing ${removeId}...`;
+          try {
+            const removeRes = await fetch(`/api/printers/configured/${encodeURIComponent(removeId)}`, { method: "DELETE" });
+            if (!removeRes.ok) {
+              const body = await removeRes.json().catch(() => ({}));
+              throw new Error(body.message || `Failed to remove ${removeId}`);
+            }
+            if (printerId === removeId) {
+              printerId = "main";
+            }
+            await loadConfiguredPrinters();
+            syncSettingsUi();
+            status.textContent = `Removed ${removeId}.`;
+            await refresh();
+          } catch (error) {
+            status.textContent = `Failed to remove printer: ${error.message || error}`;
+          }
+        });
+      });
+    }
+
     function syncSettingsUi() {
       const cameraToggle = document.getElementById("camera-toggle");
       const cameraToggleLabel = document.getElementById("camera-toggle-label");
@@ -550,7 +1149,11 @@
       if (cameraDefaultToggle) cameraDefaultToggle.checked = cameraEnabled;
       if (cameraDefaultLabel) cameraDefaultLabel.textContent = cameraEnabled ? "On" : "Off";
       if (refreshIntervalSelect) refreshIntervalSelect.value = String(refreshIntervalMs);
-      if (printerInput) printerInput.value = printerId;
+      if (printerInput) {
+        const options = availablePrinters.map((id) => `<option value="${escapeHtml(id)}">${escapeHtml(id)}</option>`).join("");
+        printerInput.innerHTML = options || `<option value="${escapeHtml(printerId)}">${escapeHtml(printerId)}</option>`;
+        printerInput.value = availablePrinters.includes(printerId) ? printerId : (availablePrinters[0] || printerId);
+      }
     }
 
     function restartRefreshTimer() {
@@ -726,6 +1329,19 @@
       });
     }
 
+    async function sendTemperatureTarget(kind, value) {
+      const endpoint = kind === "nozzle" ? "nozzle-temperature" : "bed-temperature";
+      const res = await fetch(`/api/printers/${printerId}/${endpoint}/${value}`, { method: "POST" });
+      if (!res.ok) {
+        let message = `Request failed with ${res.status}`;
+        try {
+          const body = await res.json();
+          message = body.message || body.error || message;
+        } catch (_) {}
+        throw new Error(message);
+      }
+    }
+
     async function setTemperatureTarget(kind, currentTarget) {
       const status = document.getElementById("temp-action-status");
       const displayName = kind === "nozzle" ? "Nozzle" : "Bed";
@@ -743,21 +1359,58 @@
       }
 
       status.textContent = `Setting ${displayName.toLowerCase()} target to ${value} C...`;
-      const endpoint = kind === "nozzle" ? "nozzle-temperature" : "bed-temperature";
       try {
-        const res = await fetch(`/api/printers/${printerId}/${endpoint}/${value}`, { method: "POST" });
-        if (!res.ok) {
-          let message = `Request failed with ${res.status}`;
-          try {
-            const body = await res.json();
-            message = body.message || body.error || message;
-          } catch (_) {}
-          throw new Error(message);
-        }
+        await sendTemperatureTarget(kind, value);
         status.textContent = `${displayName} target set to ${value} C.`;
         await refresh();
       } catch (error) {
         status.textContent = `Failed to set ${displayName.toLowerCase()} target: ${error}`;
+      }
+    }
+
+    function setupTemperatureQuickActions() {
+      const status = document.getElementById("temp-action-status");
+      const nozzleOff = document.getElementById("temp-off-nozzle");
+      const bedOff = document.getElementById("temp-off-bed");
+      const allOff = document.getElementById("temp-off-all");
+
+      if (nozzleOff) {
+        nozzleOff.addEventListener("click", async () => {
+          status.textContent = "Turning nozzle heater off...";
+          try {
+            await sendTemperatureTarget("nozzle", 0);
+            status.textContent = "Nozzle heater turned off.";
+            await refresh();
+          } catch (error) {
+            status.textContent = `Failed to turn nozzle heater off: ${error}`;
+          }
+        });
+      }
+
+      if (bedOff) {
+        bedOff.addEventListener("click", async () => {
+          status.textContent = "Turning bed heater off...";
+          try {
+            await sendTemperatureTarget("bed", 0);
+            status.textContent = "Bed heater turned off.";
+            await refresh();
+          } catch (error) {
+            status.textContent = `Failed to turn bed heater off: ${error}`;
+          }
+        });
+      }
+
+      if (allOff) {
+        allOff.addEventListener("click", async () => {
+          status.textContent = "Turning all heaters off...";
+          try {
+            await Promise.all([sendTemperatureTarget("nozzle", 0), sendTemperatureTarget("bed", 0)]);
+            status.textContent = "All heaters turned off.";
+            await refresh();
+          } catch (error) {
+            status.textContent = `Failed to turn all heaters off: ${error}`;
+          }
+        });
       }
     }
 
@@ -842,10 +1495,10 @@
         const displayName = (file.name || "").split("/").pop() || file.name || "Unknown file";
         const ext = displayName.includes(".") ? displayName.split(".").pop().slice(0, 3) : "JOB";
         const status = getFileStatus(file);
-        const thumbUrl = `/api/printers/${printerId}/file-thumbnail?file_name=${encodeURIComponent(displayName)}`;
+        const thumbUrl = `/api/printers/${printerId}/file-thumbnail?file_name=${encodeURIComponent(displayName)}&session_token=${encodeURIComponent(sessionToken || "")}`;
         const startDisabled = hasActiveJob && !file.is_active;
         const deleteDisabled = hasActiveJob;
-        return `<tr><td class="file-name-cell"><div class="file-name-wrap"><div class="file-thumb"><img loading="lazy" src="${thumbUrl}" alt="${escapeHtml(displayName)}" data-thumb="${escapeHtml(displayName)}"><span class="file-icon hidden" data-fallback="${escapeHtml(displayName)}">${escapeHtml(ext)}</span></div><div><div>${escapeHtml(displayName)}</div><div class="file-sub">${file.is_active ? "Running on printer" : "Ready in local storage"}</div></div></div></td><td><span class="status-badge ${status.className}">${status.label}</span></td><td>${inferFileTime(file)}</td><td>${inferFileSize(displayName)}</td><td><div class="file-actions"><button class="file-action" type="button" data-action="start-file" data-file="${escapeHtml(displayName)}" ${startDisabled ? "disabled title=\"Printer already has an active job\"" : ""}>Print</button><button class="file-action danger" type="button" data-action="delete-file" data-file="${escapeHtml(displayName)}" ${deleteDisabled ? "disabled title=\"Stop current print before deleting files\"" : ""}>Delete</button><button class="file-action" type="button" data-action="info" data-file="${escapeHtml(displayName)}">Info</button></div></td></tr>`;
+        return `<tr><td class="file-name-cell" data-label="Name"><div class="file-name-wrap"><div class="file-thumb"><img loading="lazy" src="${thumbUrl}" alt="${escapeHtml(displayName)}" data-thumb="${escapeHtml(displayName)}"><span class="file-icon hidden" data-fallback="${escapeHtml(displayName)}">${escapeHtml(ext)}</span></div><div><div>${escapeHtml(displayName)}</div><div class="file-sub">${file.is_active ? "Running on printer" : "Ready in local storage"}</div></div></div></td><td data-label="Status"><span class="status-badge ${status.className}">${status.label}</span></td><td data-label="Time">${inferFileTime(file)}</td><td data-label="Size">${inferFileSize(displayName)}</td><td class="actions-cell" data-label="Actions"><div class="file-actions"><button class="btn btn-primary file-action" type="button" data-action="start-file" data-file="${escapeHtml(displayName)}" ${startDisabled ? "disabled title=\"Printer already has an active job\"" : ""}>Print</button><button class="btn btn-danger file-action danger" type="button" data-action="delete-file" data-file="${escapeHtml(displayName)}" ${deleteDisabled ? "disabled title=\"Stop current print before deleting files\"" : ""}>Delete</button><button class="btn btn-secondary file-action" type="button" data-action="info" data-file="${escapeHtml(displayName)}">Info</button></div></td></tr>`;
       }).join("");
       body.querySelectorAll("img[data-thumb]").forEach(img => {
         img.addEventListener("error", () => {
@@ -991,28 +1644,94 @@
     function setupJobActions() {
       document.getElementById("pause-job-button").addEventListener("click", () => sendJobCommand("pause"));
       document.getElementById("resume-job-button").addEventListener("click", () => sendJobCommand("resume"));
+      const stopButton = document.getElementById("stop-job-button");
+      const status = document.getElementById("job-action-status");
+      if (stopButton && status) {
+        stopButton.addEventListener("click", () => {
+          status.textContent = "Stop action is not available on this printer API yet.";
+        });
+      }
     }
 
     function setupViews() {
       const config = {
         dashboard: { heading: "Dashboard", subheading: "Dense monitoring panels and live printer controls." },
         files: { heading: "File Browser", subheading: "Compact storage table with fast print and delete actions." },
+        camera: { heading: "Camera Feed", subheading: "Live printer view in a compact monitoring frame." },
         devices: { heading: "Devices", subheading: "Printer identity, network status, and motion telemetry." },
         activity: { heading: "Activity", subheading: "Recent actions and current sync status from the UI." },
         settings: { heading: "Settings", subheading: "Local UI controls for refresh and camera behavior." }
       };
+      const activateView = (target) => {
+        if (!config[target]) return;
+        const routedView = target === "camera" ? "dashboard" : target;
+        const shell = document.querySelector(".app-shell");
+        shell.classList.toggle("mobile-focus-camera", target === "camera");
+        document.querySelectorAll(".nav-item[data-view], .mobile-tab-item[data-view]").forEach(item => {
+          const itemView = item.getAttribute("data-view");
+          const shouldBeActive = item.classList.contains("mobile-tab-item")
+            ? itemView === target
+            : itemView === routedView;
+          item.classList.toggle("active", shouldBeActive);
+        });
+        document.getElementById("view-dashboard").classList.toggle("hidden", routedView !== "dashboard");
+        document.getElementById("view-files").classList.toggle("hidden", routedView !== "files");
+        document.getElementById("view-devices").classList.toggle("hidden", routedView !== "devices");
+        document.getElementById("view-activity").classList.toggle("hidden", routedView !== "activity");
+        document.getElementById("view-more").classList.toggle("hidden", true);
+        document.getElementById("view-settings").classList.toggle("hidden", routedView !== "settings");
+        text("page-heading", config[target].heading);
+        text("page-subheading", config[target].subheading);
+        if (target === "dashboard" || target === "camera") {
+          const targetCard = target === "camera"
+            ? document.getElementById("dashboard-camera-card")
+            : document.getElementById("view-dashboard");
+          if (targetCard) {
+            setTimeout(() => {
+              targetCard.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 30);
+          }
+        }
+      };
       document.querySelectorAll("[data-view]").forEach(button => {
         button.addEventListener("click", () => {
           const target = button.getAttribute("data-view");
-          document.querySelectorAll(".nav-item[data-view]").forEach(item => item.classList.toggle("active", item === button));
-          document.getElementById("view-dashboard").classList.toggle("hidden", target !== "dashboard");
-          document.getElementById("view-files").classList.toggle("hidden", target !== "files");
-          document.getElementById("view-devices").classList.toggle("hidden", target !== "devices");
-          document.getElementById("view-activity").classList.toggle("hidden", target !== "activity");
-          document.getElementById("view-settings").classList.toggle("hidden", target !== "settings");
-          text("page-heading", config[target].heading);
-          text("page-subheading", config[target].subheading);
+          activateView(target);
+          if (window.matchMedia("(max-width: 980px)").matches) setMobileNavOpen(false);
         });
+      });
+      document.getElementById("more-open-devices")?.addEventListener("click", () => activateView("devices"));
+      document.getElementById("more-open-activity")?.addEventListener("click", () => activateView("activity"));
+      document.getElementById("more-open-settings")?.addEventListener("click", () => activateView("settings"));
+    }
+
+    function setMobileNavOpen(isOpen) {
+      const shell = document.querySelector(".app-shell");
+      const toggle = document.getElementById("mobile-nav-toggle");
+      shell.classList.toggle("mobile-nav-open", isOpen);
+      if (toggle) toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    }
+
+    function setupMobileNav() {
+      const toggle = document.getElementById("mobile-nav-toggle");
+      const backdrop = document.getElementById("mobile-sidebar-backdrop");
+      const mobileRefreshButton = document.getElementById("mobile-refresh-button");
+      if (toggle) {
+        toggle.addEventListener("click", () => {
+          const shell = document.querySelector(".app-shell");
+          setMobileNavOpen(!shell.classList.contains("mobile-nav-open"));
+        });
+      }
+      if (mobileRefreshButton) {
+        mobileRefreshButton.addEventListener("click", () => refresh());
+      }
+      if (backdrop) {
+        backdrop.addEventListener("click", () => setMobileNavOpen(false));
+      }
+      window.addEventListener("resize", () => {
+        if (!window.matchMedia("(max-width: 980px)").matches) {
+          setMobileNavOpen(false);
+        }
       });
     }
 
@@ -1020,6 +1739,9 @@
       const autoRefreshToggle = document.getElementById("settings-auto-refresh");
       const refreshIntervalSelect = document.getElementById("settings-refresh-interval");
       const cameraDefaultToggle = document.getElementById("settings-camera-default");
+      const printerSelect = document.getElementById("settings-printer-id");
+      const addButton = document.getElementById("add-printer-button");
+      const addStatus = document.getElementById("add-printer-status");
 
       autoRefreshToggle.addEventListener("change", () => {
         autoRefreshEnabled = autoRefreshToggle.checked;
@@ -1041,6 +1763,56 @@
         syncSettingsUi();
         setupCamera();
       });
+
+      if (printerSelect) {
+        printerSelect.addEventListener("change", () => {
+          const selected = printerSelect.value;
+          if (!selected) return;
+          printerId = selected;
+          localStorage.setItem("ff_active_printer", printerId);
+          syncSettingsUi();
+          refresh();
+        });
+      }
+
+      if (addButton) {
+        addButton.addEventListener("click", async () => {
+          const id = document.getElementById("add-printer-id").value.trim();
+          const ip = document.getElementById("add-printer-ip").value.trim();
+          const serialNumber = document.getElementById("add-printer-serial").value.trim();
+          const checkCode = document.getElementById("add-printer-checkcode").value.trim();
+
+          if (!id || !ip || !serialNumber || !checkCode) {
+            addStatus.textContent = "Fill all printer fields first.";
+            return;
+          }
+
+          addStatus.textContent = `Adding printer ${id}...`;
+          try {
+            const res = await fetch("/api/printers/configured", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ id, ip, serialNumber, checkCode }),
+            });
+            if (!res.ok) {
+              const body = await res.json().catch(() => ({}));
+              throw new Error(body.message || `Failed (${res.status})`);
+            }
+            printerId = id;
+            localStorage.setItem("ff_active_printer", printerId);
+            document.getElementById("add-printer-id").value = "";
+            document.getElementById("add-printer-ip").value = "";
+            document.getElementById("add-printer-serial").value = "";
+            document.getElementById("add-printer-checkcode").value = "";
+            await loadConfiguredPrinters();
+            syncSettingsUi();
+            addStatus.textContent = `Added ${id}.`;
+            await refresh();
+          } catch (error) {
+            addStatus.textContent = `Add printer failed: ${error.message || error}`;
+          }
+        });
+      }
     }
 
     function setupFileFilters() {
@@ -1060,27 +1832,66 @@
       refreshInFlight = true;
       setRefreshState("Refreshing printer data...", "syncing");
       try {
-        const [listRes, infoRes, statusRes, progressRes, tempRes, filesRes] = await Promise.all([
-          fetch("/api/printers"),
+        const listRes = await fetch("/api/printers");
+        if (!listRes.ok) throw new Error(`Printer list request failed with ${listRes.status}`);
+        const printers = await listRes.json();
+        const printer = Array.isArray(printers) ? printers.find(p => p.name === printerId) || printers[0] : null;
+        const online = Boolean(printer && printer.is_online);
+        const statusPill = document.getElementById("online-pill");
+        const sidebarOnline = document.getElementById("sidebar-online");
+
+        textMany(["hero-printer", "devices-target"], printer ? printer.name : printerId);
+        text("hero-connection", online ? "Printer online" : "Printer offline");
+        statusPill.textContent = online ? "Online" : "Offline";
+        sidebarOnline.textContent = online ? "Printer Connected" : "Printer Offline";
+        statusPill.className = `status-badge ${online ? "ready" : "error"}`;
+        sidebarOnline.className = `status-badge ${online ? "ready" : "error"}`;
+        text("devices-network", online ? "Online" : "Offline");
+        text("network-state", online ? "Connected" : "Disconnected");
+
+        if (!online) {
+          text("hero-file", "Unavailable");
+          textMany(["machine-status", "devices-status", "job-status"], "Offline");
+          textMany(["job-file", "activity-current-file"], "Unavailable");
+          textMany(["job-layer", "activity-layer", "layer-text"], "0 / 0");
+          textMany(["job-byte", "activity-byte", "byte-text"], "0 / 0");
+          setBar("layer-bar", 0);
+          setBar("byte-bar", 0);
+          setBar("cpu-bar", 0);
+          setBar("ram-bar", 0);
+          text("cpu-text", "0%");
+          text("ram-text", "0%");
+          text("job-temp-t0", "-");
+          text("job-temp-b", "-");
+          allFiles = [];
+          renderTemps({ T0: { current: 0, target: 0 }, B: { current: 0, target: 0 } });
+          renderFiles();
+          document.getElementById("pause-job-button").disabled = true;
+          document.getElementById("resume-job-button").disabled = true;
+          lastUpdatedAt = new Date();
+          updateLastUpdatedLabel();
+          setRefreshState(`Printer offline or unreachable at ${printer?.name || printerId}`, "error");
+          return;
+        }
+
+        const [infoRes, statusRes, progressRes, tempRes, filesRes] = await Promise.all([
           fetch(`/api/printers/${printerId}/info`),
           fetch(`/api/printers/${printerId}/status`),
           fetch(`/api/printers/${printerId}/progress`),
           fetch(`/api/printers/${printerId}/temperatures`),
           fetch(`/api/printers/${printerId}/files`)
         ]);
-        const printers = await listRes.json();
+        if (!infoRes.ok || !statusRes.ok || !progressRes.ok || !tempRes.ok || !filesRes.ok) {
+          throw new Error("One or more printer detail requests failed");
+        }
         const info = await infoRes.json();
         const status = await statusRes.json();
         const progress = await progressRes.json();
         const temps = await tempRes.json();
         allFiles = await filesRes.json();
-        const printer = Array.isArray(printers) ? printers.find(p => p.name === printerId) || printers[0] : null;
-        const online = Boolean(printer && printer.is_online);
         const layerPct = percent(progress.layer?.[0] || 0, progress.layer?.[1] || 0);
         const bytePct = percent(progress.byte?.[0] || 0, progress.byte?.[1] || 0);
         const nozzlePct = Math.max(0, Math.min(100, percent(Number(temps?.T0?.current || 0), Math.max(220, Number(temps?.T0?.target || 0), Number(temps?.T0?.current || 0), 1))));
-        textMany(["hero-printer", "devices-target"], printer ? printer.name : printerId);
-        text("hero-connection", online ? "Printer online" : "Printer offline");
         text("hero-file", status.current_file || "Idle");
         textMany(["machine-name", "devices-name"], info.name || "Flashforge");
         textMany(["model-name", "devices-model"], info.model_name || "-");
@@ -1092,13 +1903,6 @@
         textMany(["pos-x", "devices-pos-x"], info.position?.x ?? "-");
         textMany(["pos-y", "devices-pos-y"], info.position?.y ?? "-");
         textMany(["pos-z", "devices-pos-z"], info.position?.z ?? "-");
-        text("devices-network", online ? "Online" : "Offline");
-        const statusPill = document.getElementById("online-pill");
-        const sidebarOnline = document.getElementById("sidebar-online");
-        statusPill.textContent = online ? "Online" : "Offline";
-        sidebarOnline.textContent = online ? "Printer Connected" : "Printer Offline";
-        statusPill.className = `status-badge ${online ? "ready" : "error"}`;
-        sidebarOnline.className = `status-badge ${online ? "ready" : "error"}`;
         text("layer-text", `${progress.layer?.[0] ?? 0} / ${progress.layer?.[1] ?? 0}`);
         text("byte-text", `${progress.byte?.[0] ?? 0} / ${progress.byte?.[1] ?? 0}`);
         setBar("layer-bar", layerPct);
@@ -1113,7 +1917,6 @@
         const ramValue = inferSystemMetric(layerPct * 0.7, 18);
         text("cpu-text", `${cpuValue}%`);
         text("ram-text", `${ramValue}%`);
-        text("network-state", online ? "Connected" : "Disconnected");
         setBar("cpu-bar", cpuValue);
         setBar("ram-bar", ramValue);
         updateNetworkChart(layerPct, nozzlePct);
@@ -1126,25 +1929,35 @@
         updateLastUpdatedLabel();
         setRefreshState("Live data is up to date");
       } catch (error) {
-        setRefreshState("Refresh failed. Retrying automatically.", "error");
-        text("last-updated", String(error));
+        const message = String(error?.message || error || "unknown error");
+        setRefreshState(`Refresh failed: ${message}`, "error");
+        text("last-updated", message);
       } finally {
         refreshInFlight = false;
       }
     }
 
-    loadUiPrefs();
-    setupViews();
-    setupCameraToggle();
-    setupJobActions();
-    setupFileUpload();
-    setupFileFilters();
-    setupSettings();
-    syncSettingsUi();
-    setupCamera();
-    refresh();
-    restartRefreshTimer();
-    setInterval(updateLastUpdatedLabel, 1000);
+    async function boot() {
+      const ok = await ensureAuthSession();
+      if (!ok) return;
+      loadUiPrefs();
+      setupMobileNav();
+      setupViews();
+      setupCameraToggle();
+      setupJobActions();
+      setupTemperatureQuickActions();
+      setupFileUpload();
+      setupFileFilters();
+      setupSettings();
+      await loadConfiguredPrinters();
+      syncSettingsUi();
+      setupCamera();
+      refresh();
+      restartRefreshTimer();
+      setInterval(updateLastUpdatedLabel, 1000);
+    }
+
+    boot();
   </script>
 </body>
 </html>

@@ -10,6 +10,47 @@ This is a separate Node/Express rewrite created beside the Rust project. The Rus
 4. Run `npm run dev`
 5. Open `http://localhost:8080`
 
+## Permanent Public URL (same link every time)
+
+Use Cloudflare Tunnel with your own domain/subdomain.
+
+1. Follow `PERMANENT_URL_SETUP.md` once.
+2. Copy `.env.tunnel.example` to `.env.tunnel` and paste your tunnel token.
+3. Run `start-permanent-url.bat`.
+
+After setup, you always use the same URL (example: `https://app.yourdomain.com`).
+
+## Free Public URL (no domain needed)
+
+This is fully free but the URL changes each time you start it.
+
+1. Run `npm install`
+2. Double-click `start-free-url.bat`
+3. Copy the `https://...` URL from the tunnel window
+
+Keep both terminal windows open while you use the app remotely.
+
+## Orca Upload Bridge (Orca -> Website -> Printer)
+
+This server now exposes an OctoPrint-compatible upload bridge:
+
+- `GET /octoprint/api/version`
+- `POST /octoprint/api/files/local`
+
+Use in Orca as:
+
+1. Host type: `OctoPrint`
+2. URL: `https://your-url` (do not add `/octoprint` manually if Orca appends `/api/...`)
+3. API key: value from `config.json -> auth.slicerApiKey`
+
+If your Orca profile needs a custom path base, use:
+
+- Base URL: `https://your-url/octoprint`
+
+Optional printer selection:
+
+- Add `?printerId=main` to the bridge URL if you run multiple printers.
+
 ## Implemented in this copy
 
 - Static frontend split into `public/index.html`, `public/styles.css`, and `public/app.js`

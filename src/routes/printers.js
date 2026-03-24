@@ -16,7 +16,7 @@ import {
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-export function createPrinterRouter(config) {
+export function createPrinterRouter(config, { saveConfig, authManager }) {
   const router = express.Router();
 
   function getPrinter(printerId) {
@@ -48,6 +48,12 @@ export function createPrinterRouter(config) {
 
   function requireAccess(accessType) {
     return (req, _res, next) => {
+      if (authManager?.isLoginRequired()) {
+        if (!authManager.isAuthenticated(req)) {
+          next(Object.assign(new Error("login required"), { status: 401, code: "AUTH_REQUIRED" }));
+          return;
+        }
+      }
       const auth = config.auth || {};
       const needsPassword = accessType === "write" ? auth.passwordForWrite : auth.passwordForRead;
       if (!needsPassword) {
@@ -73,6 +79,59 @@ export function createPrinterRouter(config) {
 
   router.get("/names", (_req, res) => {
     res.json(Object.keys(config.printers));
+  });
+
+  router.get("/configured", requireAccess("read"), (_req, res) => {
+    const printers = Object.entries(config.printers || {}).map(([id, printer]) => ({
+      id,
+      ip: printer.ip || "",
+      serialNumber: printer.serialNumber || "",
+      checkCode: printer.checkCode || "",
+    }));
+    res.json(printers);
+  });
+
+  router.post("/configured", requireAccess("write"), (req, res, next) => {
+    try {
+      const body = req.body || {};
+      const id = String(body.id || "").trim();
+      const ip = String(body.ip || "").trim();
+      const serialNumber = String(body.serialNumber || "").trim();
+      const checkCode = String(body.checkCode || "").trim();
+
+      if (!id || !ip || !serialNumber || !checkCode) {
+        throw Object.assign(new Error("id, ip, serialNumber, and checkCode are required"), {
+          status: 400,
+          code: "VALIDATION_ERROR",
+        });
+      }
+      if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+        throw Object.assign(new Error("printer id must use letters, numbers, dash, or underscore"), {
+          status: 400,
+          code: "VALIDATION_ERROR",
+        });
+      }
+
+      config.printers[id] = { ip, serialNumber, checkCode };
+      saveConfig(config);
+      res.json({ success: true, id });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.delete("/configured/:printerId", requireAccess("write"), (req, res, next) => {
+    try {
+      const printerId = req.params.printerId;
+      if (!config.printers[printerId]) {
+        throw Object.assign(new Error(`unknown printer ${printerId}`), { status: 404, code: "NOT_FOUND" });
+      }
+      delete config.printers[printerId];
+      saveConfig(config);
+      res.json({ success: true });
+    } catch (error) {
+      next(error);
+    }
   });
 
   router.get("/:printerId/info", requireAccess("read"), async (req, res, next) => {
