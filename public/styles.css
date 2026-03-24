@@ -1,0 +1,157 @@
+:root {
+  --bg: #10161c;
+  --panel: #17212b;
+  --panel-2: #1d2935;
+  --line: #2c3947;
+  --text: #ecf3fb;
+  --muted: #97a8ba;
+  --accent: #57c7ff;
+  --good: #52d18c;
+  --bad: #ff7b7b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top right, rgba(87, 199, 255, 0.15), transparent 20%), var(--bg);
+  color: var(--text);
+}
+
+.shell {
+  width: min(1080px, calc(100% - 32px));
+  margin: 32px auto;
+  display: grid;
+  gap: 18px;
+}
+
+.hero,
+.card {
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.eyebrow,
+.label,
+.status,
+.check {
+  color: var(--muted);
+}
+
+h1,
+h2,
+p { margin-top: 0; }
+
+.card-head,
+.hero-actions,
+.upload-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.card-head { justify-content: space-between; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.value {
+  margin-top: 6px;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+button,
+.link-button {
+  background: var(--accent);
+  color: #082032;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+input[type="file"] {
+  color: var(--text);
+}
+
+.badge {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.badge.online {
+  color: var(--good);
+  border-color: rgba(82, 209, 140, 0.45);
+}
+
+.badge.offline {
+  color: var(--bad);
+  border-color: rgba(255, 123, 123, 0.45);
+}
+
+.snapshot {
+  width: 100%;
+  max-height: 460px;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.03);
+}
+
+.files {
+  list-style: none;
+  padding: 0;
+  margin: 14px 0 0;
+  display: grid;
+  gap: 10px;
+}
+
+.files li {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.file-copy {
+  min-width: 0;
+}
+
+.file-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.file-meta {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin-top: 4px;
+}
+
+.file-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.file-actions button {
+  padding: 8px 12px;
+}

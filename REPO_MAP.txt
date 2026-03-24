@@ -1,0 +1,110 @@
+FLASHFORGE API SERVER (NODE) - REPO MAP
+=======================================
+
+Project Root
+------------
+- config.json
+  Runtime config used by the server (preferred if present).
+- package.json
+  Node package metadata and scripts (`start`, `dev`).
+- README.md / README.txt
+  Setup and usage notes.
+- server.out.log / server.err.log
+  Runtime logs from local starts.
+- src/
+  Backend server, routes, printer protocol client, parsers.
+- public/
+  Frontend UI (served statically).
+
+Core Backend Files
+------------------
+- src/server.js
+  Express app entrypoint.
+  - Loads config via `loadConfig()`
+  - Enables CORS + JSON/urlencoded parsers
+  - Serves `public/`
+  - Mounts API at `/api/printers`
+  - Global JSON error handler
+  - Listens on `PORT` env or config server port (default 8080)
+
+- src/config.js
+  Config loader.
+  - Uses `config.json` if present
+  - Falls back to `config.example.json`
+  - Validates `printers` exists
+
+- src/routes/printers.js
+  Main API router for printer actions.
+  Routes:
+  - GET `/api/printers`
+  - GET `/api/printers/names`
+  - GET `/api/printers/:printerId/info`
+  - GET `/api/printers/:printerId/status`
+  - GET `/api/printers/:printerId/temperatures`
+  - GET `/api/printers/:printerId/progress`
+  - GET `/api/printers/:printerId/head-position`
+  - GET `/api/printers/:printerId/files`
+  - GET `/api/printers/:printerId/files-debug`
+  - GET `/api/printers/:printerId/detail`
+  - GET `/api/printers/:printerId/file-thumbnail`
+  - POST `/api/printers/:printerId/start-file`
+  - POST `/api/printers/:printerId/upload-file` (multipart via multer)
+  - POST `/api/printers/:printerId/delete-file`
+  - POST `/api/printers/:printerId/set-temperature/:tempIndex/:temperature`
+  - POST `/api/printers/:printerId/nozzle-temperature/:temperature`
+  - POST `/api/printers/:printerId/bed-temperature/:temperature`
+  - POST `/api/printers/:printerId/pause`
+  - POST `/api/printers/:printerId/resume`
+  - GET `/api/printers/:printerId/snapshot`
+  - GET `/api/printers/:printerId/camera`
+
+- src/printerClient.js
+  Printer protocol layer (TCP + HTTP).
+  Key responsibilities:
+  - Raw TCP command execution on port 8899
+  - HTTP control/detail/thumbnail calls on port 8898
+  - File upload via TCP `M28`/binary/`M29` (primary path)
+  - HTTP upload fallback to `/uploadGcode`
+  - Start/delete control wrappers with verification logic
+  - Camera stream and snapshot proxy helpers
+
+- src/lib/parse.js
+  Response parsing utilities:
+  - `parseKvResponse`
+  - `parseFilesResponse` (dedupe, preserves printer order)
+  - `parseProgressResponse`
+
+Frontend Files
+--------------
+- public/index.html
+  Main dashboard/file-manager UI with embedded script and styles.
+  Includes tabs for Dashboard, Files, Devices, Activity, Settings.
+  Files tab actions wire to:
+  - upload
+  - print/start
+  - delete
+  - info panel
+  - filter/search/refresh
+
+- public/styles.css
+  Additional stylesheet file (legacy/optional depending on page usage).
+
+- public/app.js
+  Older frontend script (legacy path); `index.html` currently contains inline logic.
+
+Runtime Notes
+-------------
+- API server default URL: `http://127.0.0.1:8080`
+- Printer TCP port: `8899`
+- Printer HTTP port: `8898`
+- Active printer target is configured under `config.json -> printers.main`
+
+Common Commands
+---------------
+- Install deps:
+  `npm install`
+- Start:
+  `npm start`
+- Dev watch mode:
+  `npm run dev`
+

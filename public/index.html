@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Flashforge Control</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #1a1d22;
+      --panel-2: #16191d;
+      --line: rgba(255, 255, 255, 0.06);
+      --row-alt: rgba(255, 255, 255, 0.018);
+      --row-hover: rgba(88, 166, 255, 0.08);
+      --text: #edf1f6;
+      --muted: #8f98a3;
+      --soft: #69737d;
+      --accent: #58a6ff;
+      --accent-strong: #2f81f7;
+      --good: #2fbf71;
+      --warn: #d8a23c;
+      --bad: #d35f5f;
+      --shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
+      --radius: 6px;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: radial-gradient(circle at top right, rgba(88, 166, 255, 0.08), transparent 20%), linear-gradient(180deg, #111318 0%, #0f1115 100%);
+      color: var(--text);
+      font-family: Inter, "Segoe UI", Tahoma, sans-serif;
+    }
+    body { padding: 18px; }
+    button, input { font: inherit; }
+    .app-shell { width: min(1460px, 100%); min-height: calc(100vh - 36px); margin: 0 auto; display: grid; grid-template-columns: 224px minmax(0, 1fr); background: rgba(20, 23, 28, 0.94); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .sidebar { background: linear-gradient(180deg, #14171b 0%, #121519 100%); border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 14px 12px; gap: 14px; }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 8px 8px 10px; }
+    .brand-mark { width: 20px; height: 20px; border-radius: 5px; background: linear-gradient(135deg, #7c4dff 0%, #58a6ff 100%); box-shadow: 0 0 24px rgba(88, 166, 255, 0.28); flex-shrink: 0; }
+    .brand-copy strong { display: block; font-size: 0.86rem; font-weight: 700; }
+    .brand-copy span { display: block; margin-top: 2px; font-size: 0.72rem; color: var(--soft); }
+    .side-group { display: grid; gap: 4px; }
+    .side-label { padding: 0 8px 6px; color: var(--soft); font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+    .nav-item { appearance: none; width: 100%; border: 1px solid transparent; background: transparent; color: var(--muted); border-radius: 5px; padding: 8px 9px; display: flex; align-items: center; gap: 10px; text-align: left; cursor: pointer; transition: background 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease; }
+    .nav-item:hover { color: var(--text); background: rgba(255, 255, 255, 0.028); border-color: var(--line); }
+    .nav-item.active { color: var(--text); background: rgba(255, 255, 255, 0.04); border-color: rgba(88, 166, 255, 0.18); box-shadow: inset 0 0 0 1px rgba(88, 166, 255, 0.06); }
+    .nav-icon { width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; color: currentColor; flex-shrink: 0; }
+    .nav-text { font-size: 0.8rem; font-weight: 600; }
+    .sidebar-spacer { flex: 1; }
+    .sidebar-status { border: 1px solid var(--line); border-radius: 5px; background: rgba(255, 255, 255, 0.02); padding: 10px; display: grid; gap: 8px; }
+    .tiny-kicker { color: var(--soft); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+    .tiny-value { font-size: 0.86rem; font-weight: 700; }
+    .main { display: flex; flex-direction: column; min-width: 0; background: linear-gradient(180deg, rgba(21, 24, 29, 0.96) 0%, rgba(15, 17, 21, 0.98) 100%); }
+    .topbar { min-height: 64px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); background: rgba(19, 22, 27, 0.86); }
+    .page-title { display: grid; gap: 2px; min-width: 0; }
+    .page-title h1 { margin: 0; font-size: 1rem; font-weight: 700; }
+    .page-title p { margin: 0; color: var(--muted); font-size: 0.78rem; }
+    .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+    .toolbar-chip, .toolbar-button, .toolbar-search { height: 34px; border: 1px solid var(--line); border-radius: 5px; background: rgba(255, 255, 255, 0.02); color: var(--muted); }
+    .toolbar-chip { display: inline-flex; align-items: center; gap: 8px; padding: 0 11px; font-size: 0.76rem; font-weight: 600; }
+    .toolbar-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 5px rgba(88, 166, 255, 0.12); }
+    .toolbar-button, .file-action, .action-button, .filter-chip { appearance: none; cursor: pointer; transition: border-color 120ms ease, color 120ms ease, background 120ms ease, box-shadow 120ms ease; }
+    .toolbar-button:disabled, .file-action:disabled, .action-button:disabled, .filter-chip:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+      box-shadow: none;
+    }
+    .toolbar-button, .filter-chip, .file-action { border: 1px solid var(--line); background: rgba(255, 255, 255, 0.02); color: var(--text); border-radius: 5px; }
+    .toolbar-button:hover, .action-button:hover, .file-action:hover, .filter-chip:hover, .sidebar .nav-item:hover { border-color: rgba(88, 166, 255, 0.26); box-shadow: 0 0 0 1px rgba(88, 166, 255, 0.04), 0 0 18px rgba(88, 166, 255, 0.08); }
+    .toolbar-button { padding: 0 12px; font-size: 0.78rem; font-weight: 600; }
+    .toolbar-button.primary, .action-button.primary { color: #eaf4ff; background: linear-gradient(180deg, rgba(47, 129, 247, 0.28), rgba(47, 129, 247, 0.18)); border-color: rgba(88, 166, 255, 0.3); }
+    .toolbar-search { display: flex; align-items: center; gap: 8px; min-width: 250px; padding: 0 10px; }
+    .toolbar-search input { width: 100%; border: 0; outline: 0; color: var(--text); background: transparent; font-size: 0.78rem; }
+    .content { padding: 16px; display: grid; gap: 16px; }
+    .hidden { display: none !important; }
+    .dashboard-grid { display: grid; grid-template-columns: 1.1fr 0.88fr 0.88fr; gap: 16px; align-items: start; }
+    .column, .progress-stack, .metric-stack, .control-stack, .info-list, .camera-shell, .files-layout { display: grid; gap: 12px; min-width: 0; }
+    .card { background: linear-gradient(180deg, rgba(27, 30, 35, 0.98) 0%, rgba(22, 25, 29, 0.98) 100%); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.015); overflow: hidden; }
+    .card-head { padding: 12px 14px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .card-title { margin: 0; font-size: 0.8rem; font-weight: 700; }
+    .card-subtitle { margin-top: 3px; color: var(--muted); font-size: 0.72rem; }
+    .card-body { padding: 12px 14px 14px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 7px; padding: 4px 8px; border-radius: 999px; font-size: 0.68rem; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.03); color: var(--muted); white-space: nowrap; }
+    .status-badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .status-badge.ready { color: var(--good); background: rgba(47, 191, 113, 0.1); border-color: rgba(47, 191, 113, 0.18); }
+    .status-badge.progress { color: var(--warn); background: rgba(216, 162, 60, 0.1); border-color: rgba(216, 162, 60, 0.18); }
+    .status-badge.error { color: var(--bad); background: rgba(211, 95, 95, 0.1); border-color: rgba(211, 95, 95, 0.18); }
+    .hero-panel { position: relative; min-height: 212px; background: radial-gradient(circle at 18% 20%, rgba(88, 166, 255, 0.12), transparent 34%), linear-gradient(135deg, rgba(18, 20, 25, 0.98), rgba(24, 27, 32, 0.98)); }
+    .hero-panel::after { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, transparent 0 58%, rgba(88, 166, 255, 0.08) 58%, transparent 64%), radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.03), transparent 24%); pointer-events: none; }
+    .hero-title { font-size: 1.55rem; font-weight: 750; letter-spacing: -0.03em; margin: 0 0 10px; position: relative; z-index: 1; }
+    .hero-stack { position: relative; z-index: 1; display: grid; gap: 8px; }
+    .meta-row, .progress-head, .metric-head, .temp-meta-row, .camera-strip, .info-row, .footer-strip { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.76rem; }
+    .meta-row span:first-child, .progress-head span:first-child, .metric-head span:first-child, .temp-meta-row span:first-child, .info-row span:first-child, .camera-strip span:first-child { color: var(--muted); }
+    .meta-row strong, .progress-head strong, .metric-head strong, .temp-meta-row strong, .info-row span:last-child { color: var(--text); font-weight: 650; }
+    .temperature-grid, .mini-grid { display: grid; gap: 12px; }
+    .temperature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .temp-ring { display: grid; gap: 10px; justify-items: center; }
+    .ring { --pct: 0; width: 98px; height: 98px; border-radius: 50%; background: radial-gradient(circle at center, #1a1d22 56%, transparent 57%), conic-gradient(var(--accent) calc(var(--pct) * 1%), rgba(255, 255, 255, 0.08) 0); display: grid; place-items: center; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02); }
+    .ring-button {
+      border: 0;
+      color: inherit;
+      cursor: pointer;
+      transition: box-shadow 120ms ease, transform 120ms ease;
+    }
+    .ring-button:hover {
+      box-shadow: inset 0 0 0 1px rgba(88, 166, 255, 0.22), 0 0 16px rgba(88, 166, 255, 0.14);
+      transform: translateY(-1px);
+    }
+    .ring-button:focus-visible {
+      outline: 0;
+      box-shadow: inset 0 0 0 2px rgba(88, 166, 255, 0.45), 0 0 0 2px rgba(88, 166, 255, 0.2);
+    }
+    .ring span { display: grid; justify-items: center; gap: 2px; }
+    .ring strong { font-size: 1rem; line-height: 1; }
+    .ring small { color: var(--muted); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; }
+    .temp-meta { width: 100%; display: grid; gap: 5px; font-size: 0.74rem; }
+    .camera-frame { position: relative; border-radius: 5px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05); aspect-ratio: 16 / 10; background: radial-gradient(circle at top right, rgba(88, 166, 255, 0.12), transparent 28%), linear-gradient(180deg, #0f1318 0%, #171b20 100%); }
+    .camera-frame img { width: 100%; height: 100%; object-fit: cover; display: none; }
+    .camera-fallback { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: var(--muted); font-size: 0.8rem; padding: 16px; line-height: 1.5; }
+    .camera-toggle, .upload-row label { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.74rem; font-weight: 600; }
+    .camera-toggle input { accent-color: var(--accent); }
+    .meter { height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.05); overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.03); }
+    .meter-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent-strong), var(--accent)); transition: width 160ms ease; }
+    .network-chart { position: relative; height: 92px; border-radius: 5px; border: 1px solid rgba(255, 255, 255, 0.04); background: linear-gradient(180deg, rgba(88, 166, 255, 0.04), transparent), linear-gradient(180deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px); background-size: auto, 100% 22px; overflow: hidden; }
+    .network-chart svg { width: 100%; height: 100%; display: block; }
+    .network-chart path.area { fill: rgba(153, 104, 255, 0.18); }
+    .network-chart path.line { fill: none; stroke: #a971ff; stroke-width: 2; }
+    .mini-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .mini-tile { border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 5px; background: rgba(255, 255, 255, 0.018); padding: 10px; display: grid; gap: 5px; }
+    .mini-tile span { color: var(--muted); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+    .mini-tile strong { font-size: 0.88rem; font-weight: 700; overflow-wrap: anywhere; }
+    .action-button { width: 100%; height: 34px; border: 1px solid var(--line); border-radius: 5px; background: rgba(255, 255, 255, 0.02); color: var(--text); font-size: 0.76rem; font-weight: 650; }
+    .file-action.danger, .action-button.danger { color: #f3c6c6; border-color: rgba(211, 95, 95, 0.18); background: rgba(211, 95, 95, 0.08); }
+    .action-status { min-height: 16px; color: var(--muted); font-size: 0.72rem; }
+    .temp-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: grid;
+      place-items: center;
+      background: rgba(7, 9, 12, 0.6);
+      backdrop-filter: blur(2px);
+      padding: 20px;
+    }
+    .temp-modal-card {
+      width: min(420px, 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(27, 30, 35, 0.99) 0%, rgba(22, 25, 29, 0.99) 100%);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+    .temp-modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .temp-modal-title {
+      margin: 0;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+    .temp-modal-subtitle {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 0.73rem;
+    }
+    .temp-modal-close {
+      width: 28px;
+      height: 28px;
+      border-radius: 5px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .temp-modal-body {
+      display: grid;
+      gap: 12px;
+      justify-items: center;
+    }
+    .temp-modal .ring {
+      width: 114px;
+      height: 114px;
+    }
+    .temp-modal-controls {
+      width: 100%;
+      display: grid;
+      gap: 8px;
+    }
+    .temp-modal-input {
+      width: 100%;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text);
+      padding: 0 10px;
+      font-size: 0.8rem;
+    }
+    .temp-modal-row {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .temp-modal-hint {
+      color: var(--soft);
+      font-size: 0.71rem;
+    }
+    .files-toolbar, .files-toolbar-left, .files-toolbar-right, .upload-row, .file-actions, .setting-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .files-toolbar { justify-content: space-between; }
+    .filter-chip { height: 32px; padding: 0 11px; font-size: 0.74rem; font-weight: 650; color: var(--muted); }
+    .filter-chip.active { color: var(--text); border-color: rgba(88, 166, 255, 0.2); background: rgba(88, 166, 255, 0.08); }
+    .upload-row input[type="file"] { max-width: 320px; color: var(--muted); font-size: 0.75rem; }
+    .setting-row { justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.035); }
+    .setting-row:last-child { border-bottom: 0; }
+    .setting-copy { display: grid; gap: 4px; }
+    .setting-title { font-size: 0.78rem; font-weight: 650; color: var(--text); }
+    .setting-subtitle { font-size: 0.72rem; color: var(--muted); }
+    .setting-control, .setting-select {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text);
+      border-radius: 5px;
+      height: 32px;
+    }
+    .setting-control { padding: 0 10px; min-width: 72px; }
+    .setting-select { padding: 0 8px; }
+    .table-wrap { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: linear-gradient(180deg, rgba(25, 28, 33, 0.98), rgba(21, 24, 28, 0.98)); }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { padding: 10px 12px; background: rgba(255, 255, 255, 0.016); border-bottom: 1px solid var(--line); color: var(--soft); text-align: left; font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; white-space: nowrap; }
+    thead th:last-child, tbody td:last-child { text-align: right; }
+    tbody tr { transition: background 120ms ease; }
+    tbody tr:nth-child(even) { background: var(--row-alt); }
+    tbody tr:hover { background: var(--row-hover); }
+    tbody td { padding: 10px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.035); font-size: 0.76rem; color: var(--muted); vertical-align: middle; white-space: nowrap; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .file-name-cell { color: var(--text); font-weight: 650; max-width: 0; white-space: normal; }
+    .file-name-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .file-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 5px;
+      flex-shrink: 0;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: linear-gradient(180deg, rgba(88, 166, 255, 0.12), rgba(88, 166, 255, 0.04)), rgba(255, 255, 255, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .file-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .file-icon { width: 22px; height: 22px; border-radius: 5px; flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.06); background: linear-gradient(180deg, rgba(88, 166, 255, 0.2), rgba(88, 166, 255, 0.08)), rgba(255, 255, 255, 0.03); display: inline-flex; align-items: center; justify-content: center; color: #dcebff; font-size: 0.64rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+    .file-sub { margin-top: 2px; color: var(--soft); font-size: 0.7rem; font-weight: 500; }
+    .file-actions { justify-content: flex-end; }
+    .file-action { height: 28px; padding: 0 10px; font-size: 0.72rem; font-weight: 650; }
+    .file-info-panel {
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 10px 12px;
+      display: grid;
+      gap: 6px;
+    }
+    .file-info-panel strong {
+      font-size: 0.8rem;
+      color: var(--text);
+    }
+    .file-info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+    .file-info-row span:last-child {
+      color: var(--text);
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+    .empty-state { padding: 28px 20px; color: var(--muted); text-align: center; font-size: 0.78rem; }
+    .footer-strip { color: var(--muted); font-size: 0.72rem; }
+    @media (max-width: 1180px) { .dashboard-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 980px) { .app-shell { grid-template-columns: 1fr; } .sidebar { border-right: 0; border-bottom: 1px solid var(--line); } }
+    @media (max-width: 760px) { body { padding: 10px; } .topbar, .files-toolbar, .upload-row { align-items: flex-start; } .toolbar-search { min-width: 0; width: 100%; } .temperature-grid, .mini-grid { grid-template-columns: 1fr; } .table-wrap { overflow-x: auto; } }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark"></div><div class="brand-copy"><strong>Flashforge</strong><span>Control Interface</span></div></div>
+      <div class="side-group">
+        <div class="side-label">Workspace</div>
+        <button class="nav-item active" type="button" data-view="dashboard"><span class="nav-icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true"><path d="M2.5 2.5h4.5v4.5H2.5zm6.5 0h4.5v4.5H9zm-6.5 6.5h4.5v4.5H2.5zm6.5 0h4.5v4.5H9z" fill="currentColor"/></svg></span><span class="nav-text">Dashboard</span></button>
+        <button class="nav-item" type="button" data-view="files"><span class="nav-icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true"><path d="M2.5 3.5A1.5 1.5 0 0 1 4 2h2.4l1.2 1.4H12A1.5 1.5 0 0 1 13.5 5v6A1.5 1.5 0 0 1 12 12.5H4A1.5 1.5 0 0 1 2.5 11z" fill="currentColor"/></svg></span><span class="nav-text">Files</span></button>
+      </div>
+      <div class="side-group">
+        <div class="side-label">System</div>
+        <button class="nav-item" type="button" data-view="devices"><span class="nav-icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true"><path d="M8 2.5 13 5v6L8 13.5 3 11V5z" stroke="currentColor" stroke-width="1.2"/></svg></span><span class="nav-text">Devices</span></button>
+        <button class="nav-item" type="button" data-view="activity"><span class="nav-icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true"><path d="M4 3.5h8M4 8h8M4 12.5h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span><span class="nav-text">Activity</span></button>
+        <button class="nav-item" type="button" data-view="settings"><span class="nav-icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true"><path d="M8 1.8v2.1M8 12.1v2.1M1.8 8h2.1M12.1 8h2.1M3.4 3.4l1.5 1.5M11.1 11.1l1.5 1.5M3.4 12.6l1.5-1.5M11.1 4.9l1.5-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span><span class="nav-text">Settings</span></button>
+      </div>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-status"><div class="tiny-kicker">Live Sync</div><div class="tiny-value" id="sidebar-refresh">Waiting for first refresh...</div><div class="status-badge ready" id="sidebar-online">Checking...</div></div>
+    </aside>
+
+    <section class="main">
+      <header class="topbar">
+        <div class="page-title"><h1 id="page-heading">Dashboard</h1><p id="page-subheading">Dense monitoring panels and live printer controls.</p></div>
+        <div class="toolbar"><div class="toolbar-chip" id="refresh-chip"><span class="dot"></span><span id="refresh-state">Sync idle</span></div><div class="toolbar-chip" id="last-updated">Never updated</div></div>
+      </header>
+
+      <div class="content">
+        <section id="view-dashboard">
+          <div class="dashboard-grid">
+            <div class="column">
+              <section class="card hero-panel">
+                <div class="card-head"><div><h2 class="card-title">Printer Status</h2><div class="card-subtitle">Primary machine telemetry and active state.</div></div><div class="status-badge ready" id="online-pill">Online</div></div>
+                <div class="card-body"><h3 class="hero-title" id="machine-name">Flashforge</h3><div class="hero-stack"><div class="meta-row"><span>Model</span><strong id="model-name">-</strong></div><div class="meta-row"><span>Firmware</span><strong id="machine-firmware">-</strong></div><div class="meta-row"><span>Current File</span><strong id="job-file">Idle</strong></div></div></div>
+              </section>
+              <section class="card">
+                <div class="card-head"><div><h2 class="card-title">Progress</h2><div class="card-subtitle">Current layer and transfer completion.</div></div></div>
+                <div class="card-body progress-stack"><div class="progress-head"><span>Layer Progress</span><strong id="layer-text">0 / 0</strong></div><div class="meter"><div class="meter-fill" id="layer-bar"></div></div><div class="progress-head"><span>Byte Progress</span><strong id="byte-text">0 / 0</strong></div><div class="meter"><div class="meter-fill" id="byte-bar"></div></div><div class="mini-grid"><div class="mini-tile"><span>Machine State</span><strong id="machine-status">-</strong></div><div class="mini-tile"><span>Move Mode</span><strong id="move-mode">-</strong></div></div></div>
+              </section>
+              <section class="card">
+                <div class="card-head"><div><h2 class="card-title">Controls</h2><div class="card-subtitle">Direct job actions for the active print.</div></div></div>
+                <div class="card-body control-stack"><button class="action-button" id="pause-job-button" type="button">Pause Print</button><button class="action-button primary" id="resume-job-button" type="button">Resume Print</button><div class="action-status" id="job-action-status"></div></div>
+              </section>
+            </div>
+
+            <div class="column">
+              <section class="card"><div class="card-head"><div><h2 class="card-title">Temperature</h2><div class="card-subtitle">Nozzle and bed setpoint tracking.</div></div></div><div class="card-body"><div class="temperature-grid" id="temperatures-grid"><div class="temp-ring"><button class="ring ring-button" type="button" style="--pct:0"><span><strong>0 C</strong><small>T0</small></span></button></div><div class="temp-ring"><button class="ring ring-button" type="button" style="--pct:0"><span><strong>0 C</strong><small>Bed</small></span></button></div></div><div style="height: 8px"></div><div class="action-status" id="temp-action-status">Click Nozzle or Bed to change target temperature.</div></div></section>
+              <section class="card"><div class="card-head"><div><h2 class="card-title">System Info</h2><div class="card-subtitle">Compact host-style metrics and network activity.</div></div></div><div class="card-body metric-stack"><div class="metric-head"><span>CPU</span><strong id="cpu-text">0%</strong></div><div class="meter"><div class="meter-fill" id="cpu-bar"></div></div><div class="metric-head"><span>RAM</span><strong id="ram-text">0%</strong></div><div class="meter"><div class="meter-fill" id="ram-bar"></div></div><div class="metric-head"><span>Network</span><strong id="network-state">Connected</strong></div><div class="network-chart"><svg viewBox="0 0 280 92" preserveAspectRatio="none" aria-hidden="true"><path class="area" id="network-area" d="M0,92 L0,70 L40,72 L80,62 L120,66 L160,44 L200,54 L240,40 L280,48 L280,92 Z"></path><path class="line" id="network-line" d="M0,70 L40,72 L80,62 L120,66 L160,44 L200,54 L240,40 L280,48"></path></svg></div><div class="mini-grid"><div class="mini-tile"><span>MAC Address</span><strong id="mac-address">-</strong></div><div class="mini-tile"><span>Tool Count</span><strong id="tool-count">-</strong></div></div></div></section>
+              <section class="card"><div class="card-head"><div><h2 class="card-title">Coordinates</h2><div class="card-subtitle">Reported print head position.</div></div></div><div class="card-body mini-grid"><div class="mini-tile"><span>X</span><strong id="pos-x">-</strong></div><div class="mini-tile"><span>Y</span><strong id="pos-y">-</strong></div><div class="mini-tile"><span>Z</span><strong id="pos-z">-</strong></div><div class="mini-tile"><span>Printer</span><strong id="hero-printer">main</strong></div></div></section>
+            </div>
+            <div class="column">
+              <section class="card"><div class="card-head"><div><h2 class="card-title">Camera Feed</h2><div class="card-subtitle">Live printer view in a compact monitoring frame.</div></div><label class="camera-toggle"><input id="camera-toggle" type="checkbox" checked><span id="camera-toggle-label">Camera On</span></label></div><div class="card-body camera-shell"><div class="camera-frame"><img id="camera-image" alt="Printer camera feed"><div class="camera-fallback" id="camera-fallback">Waiting for camera stream.</div></div><div class="camera-strip"><span id="hero-connection">Checking connection</span><span id="hero-file">Idle</span></div></div></section>
+              <section class="card"><div class="card-head"><div><h2 class="card-title">Session Summary</h2><div class="card-subtitle">Small dense rows, closer to desktop dashboards than web cards.</div></div></div><div class="card-body info-list"><div class="info-row"><span>Current Job</span><span id="job-status">-</span></div><div class="info-row"><span>Nozzle</span><span id="job-temp-t0">-</span></div><div class="info-row"><span>Bed</span><span id="job-temp-b">-</span></div><div class="info-row"><span>Layers</span><span id="job-layer">-</span></div><div class="info-row"><span>Bytes</span><span id="job-byte">-</span></div></div></section>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-files" class="hidden">
+          <div class="files-layout">
+            <section class="card">
+              <div class="card-head"><div><h2 class="card-title">File Browser</h2><div class="card-subtitle">Dense file manager layout with compact rows and operational controls.</div></div><div class="status-badge ready" id="files-count-badge">0 Files</div></div>
+              <div class="card-body">
+                <div class="files-toolbar">
+                  <div class="files-toolbar-left">
+                    <div class="toolbar-search"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.3" stroke="currentColor" stroke-width="1.2"/><path d="M10.2 10.2 13.5 13.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><input id="file-search" type="search" placeholder="Search files"></div>
+                    <button class="filter-chip active" type="button" data-filter="all">All</button>
+                    <button class="filter-chip" type="button" data-filter="ready">Ready</button>
+                    <button class="filter-chip" type="button" data-filter="active">In Progress</button>
+                  </div>
+                  <div class="files-toolbar-right"><button class="toolbar-button" id="refresh-files-button" type="button">Refresh</button></div>
+                </div>
+                <div style="height: 12px"></div>
+                <div class="upload-row"><input id="upload-file-input" type="file" accept=".3mf,.gcode,.gx,.g"><label><input id="upload-print-now" type="checkbox"><span>Print after upload</span></label><button class="toolbar-button primary" id="upload-file-button" type="button">Upload</button></div>
+                <div style="height: 10px"></div>
+                <div class="action-status" id="upload-file-status"></div>
+                <div style="height: 10px"></div>
+                <div class="file-info-panel hidden" id="file-info-panel">
+                  <strong id="file-info-title">File Info</strong>
+                  <div class="file-info-row"><span>Status</span><span id="file-info-status">-</span></div>
+                  <div class="file-info-row"><span>Path</span><span id="file-info-path">-</span></div>
+                  <div class="file-info-row"><span>Time</span><span id="file-info-time">-</span></div>
+                  <div class="file-info-row"><span>Size</span><span id="file-info-size">-</span></div>
+                </div>
+                <div style="height: 14px"></div>
+                <div class="table-wrap"><table><thead><tr><th>Name</th><th>Status</th><th>Time</th><th>Size</th><th>Actions</th></tr></thead><tbody id="file-table-body"><tr><td colspan="5" class="empty-state">Loading printer files...</td></tr></tbody></table></div>
+                <div style="height: 12px"></div>
+                <div class="footer-strip"><span id="file-footer-left">Printer storage unavailable</span><span id="file-footer-right">No selection</span></div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="view-devices" class="hidden">
+          <div class="files-layout">
+            <section class="card">
+              <div class="card-head"><div><h2 class="card-title">Devices</h2><div class="card-subtitle">Live printer identity, network, and motion details.</div></div></div>
+              <div class="card-body">
+                <div class="mini-grid">
+                  <div class="mini-tile"><span>Printer</span><strong id="devices-name">-</strong></div>
+                  <div class="mini-tile"><span>Model</span><strong id="devices-model">-</strong></div>
+                  <div class="mini-tile"><span>Firmware</span><strong id="devices-firmware">-</strong></div>
+                  <div class="mini-tile"><span>MAC</span><strong id="devices-mac">-</strong></div>
+                  <div class="mini-tile"><span>Status</span><strong id="devices-status">-</strong></div>
+                  <div class="mini-tile"><span>Move Mode</span><strong id="devices-move-mode">-</strong></div>
+                  <div class="mini-tile"><span>Tool Count</span><strong id="devices-tool-count">-</strong></div>
+                  <div class="mini-tile"><span>Network</span><strong id="devices-network">-</strong></div>
+                </div>
+              </div>
+            </section>
+            <section class="card">
+              <div class="card-head"><div><h2 class="card-title">Position</h2><div class="card-subtitle">Current reported build coordinates from the printer.</div></div></div>
+              <div class="card-body mini-grid">
+                <div class="mini-tile"><span>X</span><strong id="devices-pos-x">-</strong></div>
+                <div class="mini-tile"><span>Y</span><strong id="devices-pos-y">-</strong></div>
+                <div class="mini-tile"><span>Z</span><strong id="devices-pos-z">-</strong></div>
+                <div class="mini-tile"><span>Target</span><strong id="devices-target">main</strong></div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="view-activity" class="hidden">
+          <div class="files-layout">
+            <section class="card">
+              <div class="card-head"><div><h2 class="card-title">Activity</h2><div class="card-subtitle">Recent UI actions, sync state, and current transfer status.</div></div></div>
+              <div class="card-body info-list">
+                <div class="info-row"><span>Refresh State</span><span id="activity-refresh-state">-</span></div>
+                <div class="info-row"><span>Last Updated</span><span id="activity-last-updated">-</span></div>
+                <div class="info-row"><span>Latest File Action</span><span id="activity-file-action">-</span></div>
+                <div class="info-row"><span>Current File</span><span id="activity-current-file">-</span></div>
+                <div class="info-row"><span>Layer Progress</span><span id="activity-layer">-</span></div>
+                <div class="info-row"><span>Byte Progress</span><span id="activity-byte">-</span></div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="view-settings" class="hidden">
+          <div class="files-layout">
+            <section class="card">
+              <div class="card-head"><div><h2 class="card-title">Settings</h2><div class="card-subtitle">UI behavior and local workspace preferences.</div></div></div>
+              <div class="card-body info-list">
+                <div class="setting-row">
+                  <div class="setting-copy">
+                    <div class="setting-title">Auto Refresh</div>
+                    <div class="setting-subtitle">Keep the dashboard polling printer data automatically.</div>
+                  </div>
+                  <label class="camera-toggle"><input id="settings-auto-refresh" type="checkbox" checked><span id="settings-auto-refresh-label">On</span></label>
+                </div>
+                <div class="setting-row">
+                  <div class="setting-copy">
+                    <div class="setting-title">Refresh Interval</div>
+                    <div class="setting-subtitle">How often the UI requests new printer data.</div>
+                  </div>
+                  <select class="setting-select" id="settings-refresh-interval">
+                    <option value="3000">3 sec</option>
+                    <option value="5000" selected>5 sec</option>
+                    <option value="10000">10 sec</option>
+                    <option value="15000">15 sec</option>
+                  </select>
+                </div>
+                <div class="setting-row">
+                  <div class="setting-copy">
+                    <div class="setting-title">Camera Default</div>
+                    <div class="setting-subtitle">Remember whether the camera should start enabled.</div>
+                  </div>
+                  <label class="camera-toggle"><input id="settings-camera-default" type="checkbox" checked><span id="settings-camera-default-label">On</span></label>
+                </div>
+                <div class="setting-row">
+                  <div class="setting-copy">
+                    <div class="setting-title">Primary Printer</div>
+                    <div class="setting-subtitle">Read-only current printer target for this session.</div>
+                  </div>
+                  <input class="setting-control" id="settings-printer-id" type="text" value="main" readonly>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+  <div class="temp-modal hidden" id="temp-modal" aria-hidden="true">
+    <div class="temp-modal-card" role="dialog" aria-modal="true" aria-labelledby="temp-modal-title">
+      <div class="temp-modal-head">
+        <div>
+          <h3 class="temp-modal-title" id="temp-modal-title">Set Temperature</h3>
+          <p class="temp-modal-subtitle" id="temp-modal-subtitle">Adjust target setpoint.</p>
+        </div>
+        <button class="temp-modal-close" id="temp-modal-close" type="button" aria-label="Close temperature popup">x</button>
+      </div>
+      <div class="temp-modal-body">
+        <div class="ring" id="temp-modal-ring" style="--pct:0">
+          <span><strong id="temp-modal-current">0 C</strong><small id="temp-modal-label">Nozzle</small></span>
+        </div>
+        <div class="temp-modal-controls">
+          <input class="temp-modal-input" id="temp-modal-input" type="number" min="0" step="1" inputmode="numeric" placeholder="Target C">
+          <div class="temp-modal-hint" id="temp-modal-hint">Allowed range: 0 to 300 C</div>
+          <div class="temp-modal-row">
+            <button class="toolbar-button" id="temp-modal-cancel" type="button">Cancel</button>
+            <button class="toolbar-button primary" id="temp-modal-apply" type="button">Apply</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const printerId = "main";
+    let refreshInFlight = false;
+    let lastUpdatedAt = null;
+    let cameraEnabled = true;
+    let autoRefreshEnabled = true;
+    let refreshIntervalMs = 5000;
+    let allFiles = [];
+    let currentFilter = "all";
+    let lastFileAction = "No selection";
+    let refreshTimer = null;
+
+    function loadUiPrefs() {
+      try {
+        const savedCamera = localStorage.getItem("ff_ui_camera_enabled");
+        const savedAutoRefresh = localStorage.getItem("ff_ui_auto_refresh");
+        const savedRefreshInterval = localStorage.getItem("ff_ui_refresh_interval");
+        if (savedCamera !== null) cameraEnabled = savedCamera === "true";
+        if (savedAutoRefresh !== null) autoRefreshEnabled = savedAutoRefresh === "true";
+        if (savedRefreshInterval !== null) refreshIntervalMs = Number(savedRefreshInterval) || 5000;
+      } catch (_) {}
+    }
+
+    function saveUiPrefs() {
+      try {
+        localStorage.setItem("ff_ui_camera_enabled", String(cameraEnabled));
+        localStorage.setItem("ff_ui_auto_refresh", String(autoRefreshEnabled));
+        localStorage.setItem("ff_ui_refresh_interval", String(refreshIntervalMs));
+      } catch (_) {}
+    }
+
+    function syncSettingsUi() {
+      const cameraToggle = document.getElementById("camera-toggle");
+      const cameraToggleLabel = document.getElementById("camera-toggle-label");
+      const autoRefreshToggle = document.getElementById("settings-auto-refresh");
+      const autoRefreshLabel = document.getElementById("settings-auto-refresh-label");
+      const cameraDefaultToggle = document.getElementById("settings-camera-default");
+      const cameraDefaultLabel = document.getElementById("settings-camera-default-label");
+      const refreshIntervalSelect = document.getElementById("settings-refresh-interval");
+      const printerInput = document.getElementById("settings-printer-id");
+
+      if (cameraToggle) cameraToggle.checked = cameraEnabled;
+      if (cameraToggleLabel) cameraToggleLabel.textContent = cameraEnabled ? "Camera On" : "Camera Off";
+      if (autoRefreshToggle) autoRefreshToggle.checked = autoRefreshEnabled;
+      if (autoRefreshLabel) autoRefreshLabel.textContent = autoRefreshEnabled ? "On" : "Off";
+      if (cameraDefaultToggle) cameraDefaultToggle.checked = cameraEnabled;
+      if (cameraDefaultLabel) cameraDefaultLabel.textContent = cameraEnabled ? "On" : "Off";
+      if (refreshIntervalSelect) refreshIntervalSelect.value = String(refreshIntervalMs);
+      if (printerInput) printerInput.value = printerId;
+    }
+
+    function restartRefreshTimer() {
+      if (refreshTimer) clearInterval(refreshTimer);
+      refreshTimer = null;
+      if (autoRefreshEnabled) {
+        refreshTimer = setInterval(refresh, refreshIntervalMs);
+      }
+    }
+
+    const text = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value ?? "-";
+    };
+
+    const textMany = (ids, value) => {
+      ids.forEach(id => text(id, value));
+    };
+
+    const setBar = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.style.width = `${Math.max(0, Math.min(100, value)).toFixed(1)}%`;
+    };
+
+    const percent = (num, den) => !den || den <= 0 ? 0 : (num / den) * 100;
+
+    const escapeHtml = value => String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+
+    function setRefreshState(message, mode = "idle") {
+      textMany(["refresh-state", "sidebar-refresh", "activity-refresh-state"], message);
+      const dot = document.querySelector("#refresh-chip .dot");
+      if (!dot) return;
+      dot.style.background = mode === "error" ? "var(--bad)" : "var(--accent)";
+      dot.style.boxShadow = mode === "error" ? "0 0 0 5px rgba(211, 95, 95, 0.12)" : "0 0 0 5px rgba(88, 166, 255, 0.12)";
+    }
+
+    function formatAge(date) {
+      if (!date) return "Never updated";
+      const seconds = Math.max(0, Math.round((Date.now() - date.getTime()) / 1000));
+      if (seconds < 2) return "Updated just now";
+      if (seconds < 60) return `Updated ${seconds}s ago`;
+      return `Updated ${Math.floor(seconds / 60)}m ago`;
+    }
+
+    function updateLastUpdatedLabel() {
+      const label = formatAge(lastUpdatedAt);
+      text("last-updated", label);
+      text("activity-last-updated", label);
+    }
+
+    function inferSystemMetric(seed, bias) {
+      return Math.round(Math.max(0, Math.min(100, seed + bias)));
+    }
+
+    function updateNetworkChart(progressPct, tempPct) {
+      const values = [70, 72 - Math.round(progressPct * 0.08), 62 + Math.round(tempPct * 0.05), 66 - Math.round(progressPct * 0.03), 44 + Math.round(tempPct * 0.04), 54 - Math.round(progressPct * 0.02), 40 + Math.round(tempPct * 0.03), 48 - Math.round(progressPct * 0.01)];
+      const step = 280 / (values.length - 1);
+      const line = values.map((y, index) => `${index === 0 ? "M" : "L"}${Math.round(index * step)},${Math.max(18, Math.min(88, y))}`).join(" ");
+      document.getElementById("network-line").setAttribute("d", line);
+      document.getElementById("network-area").setAttribute("d", `${line} L280,92 L0,92 Z`);
+    }
+
+    function createTempCard(label, key, values, scaleMax) {
+      const current = Number(values?.current || 0);
+      const target = Number(values?.target || 0);
+      const pct = Math.max(0, Math.min(100, (current / scaleMax) * 100));
+      const tempKind = key === "T0" ? "nozzle" : "bed";
+      return `<div class="temp-ring"><button class="ring ring-button" type="button" data-temp-kind="${tempKind}" data-temp-target="${target.toFixed(0)}" style="--pct:${pct.toFixed(1)}" title="Click to set ${escapeHtml(label)} target"><span><strong>${current.toFixed(0)} C</strong><small>${escapeHtml(label)}</small></span></button><div class="temp-meta"><div class="temp-meta-row"><span>Target</span><strong>${target.toFixed(0)} C</strong></div><div class="temp-meta-row"><span>Sensor</span><strong>${escapeHtml(key)}</strong></div></div></div>`;
+    }
+
+    function openTemperatureModal(kind, defaultTarget) {
+      return new Promise(resolve => {
+        const modal = document.getElementById("temp-modal");
+        const title = document.getElementById("temp-modal-title");
+        const subtitle = document.getElementById("temp-modal-subtitle");
+        const label = document.getElementById("temp-modal-label");
+        const current = document.getElementById("temp-modal-current");
+        const hint = document.getElementById("temp-modal-hint");
+        const input = document.getElementById("temp-modal-input");
+        const ring = document.getElementById("temp-modal-ring");
+        const closeBtn = document.getElementById("temp-modal-close");
+        const cancelBtn = document.getElementById("temp-modal-cancel");
+        const applyBtn = document.getElementById("temp-modal-apply");
+
+        const displayName = kind === "nozzle" ? "Nozzle" : "Bed";
+        const maxAllowed = kind === "nozzle" ? 300 : 130;
+        const defaultValue = Math.max(0, Math.round(Number(defaultTarget) || 0));
+        const pct = Math.max(0, Math.min(100, (defaultValue / maxAllowed) * 100));
+        title.textContent = `Set ${displayName} Target`;
+        subtitle.textContent = "Use the same ring-style quick editor.";
+        label.textContent = displayName;
+        current.textContent = `${defaultValue} C`;
+        hint.textContent = `Allowed range: 0 to ${maxAllowed} C`;
+        input.min = "0";
+        input.max = String(maxAllowed);
+        input.value = String(defaultValue);
+        ring.style.setProperty("--pct", pct.toFixed(1));
+
+        const cleanup = () => {
+          modal.classList.add("hidden");
+          modal.setAttribute("aria-hidden", "true");
+          document.removeEventListener("keydown", onKeyDown);
+          modal.removeEventListener("click", onBackdropClick);
+          closeBtn.removeEventListener("click", onCancel);
+          cancelBtn.removeEventListener("click", onCancel);
+          applyBtn.removeEventListener("click", onApply);
+          input.removeEventListener("input", onInput);
+          input.removeEventListener("keydown", onInputKeyDown);
+        };
+
+        const onCancel = () => {
+          cleanup();
+          resolve(null);
+        };
+
+        const onApply = () => {
+          const parsed = Number(input.value);
+          if (!Number.isFinite(parsed)) {
+            input.focus();
+            input.select();
+            return;
+          }
+          const value = Math.round(parsed);
+          if (value < 0 || value > maxAllowed) {
+            hint.textContent = `Enter a value between 0 and ${maxAllowed} C.`;
+            input.focus();
+            input.select();
+            return;
+          }
+          cleanup();
+          resolve(value);
+        };
+
+        const onInput = () => {
+          const parsed = Number(input.value);
+          if (!Number.isFinite(parsed)) return;
+          const value = Math.max(0, Math.min(maxAllowed, Math.round(parsed)));
+          current.textContent = `${value} C`;
+          ring.style.setProperty("--pct", ((value / maxAllowed) * 100).toFixed(1));
+        };
+
+        const onInputKeyDown = event => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            onApply();
+          }
+        };
+
+        const onKeyDown = event => {
+          if (event.key === "Escape") onCancel();
+        };
+
+        const onBackdropClick = event => {
+          if (event.target === modal) onCancel();
+        };
+
+        modal.classList.remove("hidden");
+        modal.setAttribute("aria-hidden", "false");
+        input.focus();
+        input.select();
+        document.addEventListener("keydown", onKeyDown);
+        modal.addEventListener("click", onBackdropClick);
+        closeBtn.addEventListener("click", onCancel);
+        cancelBtn.addEventListener("click", onCancel);
+        applyBtn.addEventListener("click", onApply);
+        input.addEventListener("input", onInput);
+        input.addEventListener("keydown", onInputKeyDown);
+      });
+    }
+
+    async function setTemperatureTarget(kind, currentTarget) {
+      const status = document.getElementById("temp-action-status");
+      const displayName = kind === "nozzle" ? "Nozzle" : "Bed";
+      const defaultTarget = Number.isFinite(currentTarget) ? Math.round(currentTarget) : 0;
+      const value = await openTemperatureModal(kind, defaultTarget);
+      if (value === null) {
+        status.textContent = `${displayName} target edit cancelled.`;
+        return;
+      }
+
+      const maxAllowed = kind === "nozzle" ? 300 : 130;
+      if (value < 0 || value > maxAllowed) {
+        status.textContent = `${displayName} target must be between 0 and ${maxAllowed} C.`;
+        return;
+      }
+
+      status.textContent = `Setting ${displayName.toLowerCase()} target to ${value} C...`;
+      const endpoint = kind === "nozzle" ? "nozzle-temperature" : "bed-temperature";
+      try {
+        const res = await fetch(`/api/printers/${printerId}/${endpoint}/${value}`, { method: "POST" });
+        if (!res.ok) {
+          let message = `Request failed with ${res.status}`;
+          try {
+            const body = await res.json();
+            message = body.message || body.error || message;
+          } catch (_) {}
+          throw new Error(message);
+        }
+        status.textContent = `${displayName} target set to ${value} C.`;
+        await refresh();
+      } catch (error) {
+        status.textContent = `Failed to set ${displayName.toLowerCase()} target: ${error}`;
+      }
+    }
+
+    function renderTemps(temps) {
+      const root = document.getElementById("temperatures-grid");
+      const nozzle = temps?.T0 || { current: 0, target: 0 };
+      const bed = temps?.B || { current: 0, target: 0 };
+      root.innerHTML = createTempCard("Nozzle", "T0", nozzle, Math.max(260, nozzle.current || 0, nozzle.target || 0)) + createTempCard("Bed", "B", bed, Math.max(120, bed.current || 0, bed.target || 0));
+      root.querySelectorAll("[data-temp-kind]").forEach(button => {
+        button.addEventListener("click", () => {
+          const kind = button.getAttribute("data-temp-kind") || "nozzle";
+          const target = Number(button.getAttribute("data-temp-target"));
+          setTemperatureTarget(kind, target);
+        });
+      });
+    }
+
+    function getFileStatus(file) {
+      return file.is_active ? { label: "In Progress", className: "progress" } : { label: "Ready", className: "ready" };
+    }
+
+    function inferFileTime(file) {
+      if (file.is_active) return "Live Job";
+      const name = (file.name || "").toLowerCase();
+      if (name.endsWith(".3mf")) return "Queued";
+      if (name.endsWith(".gcode") || name.endsWith(".gx") || name.endsWith(".g")) return "Stored";
+      return "Synced";
+    }
+
+    function inferFileSize(fileName) {
+      const approx = Math.max(1.2, Math.min(94.0, (String(fileName || "").length * 0.72) + 1.8));
+      return `${approx.toFixed(1)} MB`;
+    }
+
+    function getDisplayName(file) {
+      return (file?.name || "").split("/").pop() || file?.name || "";
+    }
+
+    function findFileByDisplayName(displayName) {
+      return allFiles.find(file => getDisplayName(file) === displayName) || null;
+    }
+
+    function showFileInfo(displayName) {
+      const file = findFileByDisplayName(displayName);
+      const panel = document.getElementById("file-info-panel");
+      if (!panel) return;
+      if (!file) {
+        panel.classList.add("hidden");
+        return;
+      }
+      const status = getFileStatus(file);
+      text("file-info-title", `File Info: ${displayName}`);
+      text("file-info-status", status.label);
+      text("file-info-path", file.name || "-");
+      text("file-info-time", inferFileTime(file));
+      text("file-info-size", inferFileSize(displayName));
+      panel.classList.remove("hidden");
+    }
+
+    function filteredFiles() {
+      const query = document.getElementById("file-search")?.value?.trim().toLowerCase() || "";
+      return allFiles.filter(file => {
+        const name = (file.name || "").toLowerCase();
+        const matchesQuery = !query || name.includes(query);
+        const matchesFilter = currentFilter === "all" || (currentFilter === "active" && file.is_active) || (currentFilter === "ready" && !file.is_active);
+        return matchesQuery && matchesFilter;
+      });
+    }
+
+    function renderFiles() {
+      const body = document.getElementById("file-table-body");
+      const rows = filteredFiles();
+      const hasActiveJob = allFiles.some(file => file.is_active);
+      text("files-count-badge", `${rows.length} Files`);
+      text("file-footer-left", allFiles.length ? `${allFiles.length} items synced from printer storage` : "Printer storage unavailable");
+      text("file-footer-right", lastFileAction);
+      if (!rows.length) {
+        body.innerHTML = `<tr><td colspan="5" class="empty-state">${allFiles.length ? "No files match the current search or filter." : "This printer is not returning a browsable file list right now."}</td></tr>`;
+        return;
+      }
+      body.innerHTML = rows.map(file => {
+        const displayName = (file.name || "").split("/").pop() || file.name || "Unknown file";
+        const ext = displayName.includes(".") ? displayName.split(".").pop().slice(0, 3) : "JOB";
+        const status = getFileStatus(file);
+        const thumbUrl = `/api/printers/${printerId}/file-thumbnail?file_name=${encodeURIComponent(displayName)}`;
+        const startDisabled = hasActiveJob && !file.is_active;
+        const deleteDisabled = hasActiveJob;
+        return `<tr><td class="file-name-cell"><div class="file-name-wrap"><div class="file-thumb"><img loading="lazy" src="${thumbUrl}" alt="${escapeHtml(displayName)}" data-thumb="${escapeHtml(displayName)}"><span class="file-icon hidden" data-fallback="${escapeHtml(displayName)}">${escapeHtml(ext)}</span></div><div><div>${escapeHtml(displayName)}</div><div class="file-sub">${file.is_active ? "Running on printer" : "Ready in local storage"}</div></div></div></td><td><span class="status-badge ${status.className}">${status.label}</span></td><td>${inferFileTime(file)}</td><td>${inferFileSize(displayName)}</td><td><div class="file-actions"><button class="file-action" type="button" data-action="start-file" data-file="${escapeHtml(displayName)}" ${startDisabled ? "disabled title=\"Printer already has an active job\"" : ""}>Print</button><button class="file-action danger" type="button" data-action="delete-file" data-file="${escapeHtml(displayName)}" ${deleteDisabled ? "disabled title=\"Stop current print before deleting files\"" : ""}>Delete</button><button class="file-action" type="button" data-action="info" data-file="${escapeHtml(displayName)}">Info</button></div></td></tr>`;
+      }).join("");
+      body.querySelectorAll("img[data-thumb]").forEach(img => {
+        img.addEventListener("error", () => {
+          img.classList.add("hidden");
+          const fallback = img.parentElement?.querySelector("[data-fallback]");
+          if (fallback) fallback.classList.remove("hidden");
+        });
+      });
+      body.querySelectorAll("[data-action]").forEach(button => {
+        const fileName = button.getAttribute("data-file");
+        const action = button.getAttribute("data-action");
+        if (action === "info") {
+          button.addEventListener("click", () => {
+            lastFileAction = `Selected ${fileName}`;
+            text("upload-file-status", `Showing info for ${fileName}`);
+            showFileInfo(fileName);
+            text("file-footer-right", lastFileAction);
+          });
+          return;
+        }
+        button.addEventListener("click", () => runFileAction(action, fileName));
+      });
+    }
+
+    async function runFileAction(action, fileName) {
+      const status = document.getElementById("upload-file-status");
+      const label = action === "start-file" ? "Starting" : "Deleting";
+      lastFileAction = `${label} ${fileName}`;
+      renderFiles();
+      status.textContent = `${label} ${fileName}...`;
+      try {
+        const res = await fetch(`/api/printers/${printerId}/${action}?file_name=${encodeURIComponent(fileName)}`, { method: "POST" });
+        if (!res.ok) {
+          let message = `Request failed with ${res.status}`;
+          try {
+            const body = await res.json();
+            message = body.message || body.error || message;
+          } catch (_) {}
+          throw new Error(message);
+        }
+        lastFileAction = action === "start-file" ? `Print command sent for ${fileName}` : `Delete command sent for ${fileName}`;
+        status.textContent = lastFileAction;
+        await refresh();
+      } catch (error) {
+        lastFileAction = `Action failed for ${fileName}`;
+        status.textContent = `Failed: ${error}`;
+        renderFiles();
+      }
+    }
+
+    function setupFileUpload() {
+      const input = document.getElementById("upload-file-input");
+      const printNow = document.getElementById("upload-print-now");
+      const button = document.getElementById("upload-file-button");
+      const status = document.getElementById("upload-file-status");
+      button.addEventListener("click", async () => {
+        const file = input.files && input.files[0];
+        if (!file) {
+          status.textContent = "Choose a file first.";
+          return;
+        }
+        const formData = new FormData();
+        formData.append("file", file, file.name);
+        formData.append("file_name", file.name);
+        formData.append("print_now", String(printNow.checked));
+        button.disabled = true;
+        status.textContent = `Uploading ${file.name}...`;
+        try {
+          const res = await fetch(`/api/printers/${printerId}/upload-file`, { method: "POST", body: formData });
+          if (!res.ok) {
+            let message = `Upload failed with ${res.status}`;
+            try {
+              const body = await res.json();
+              message = body.message || body.error || message;
+            } catch (_) {}
+            throw new Error(message);
+          }
+          lastFileAction = printNow.checked ? `Uploaded and queued ${file.name}` : `Uploaded ${file.name}`;
+          status.textContent = printNow.checked ? `Uploaded ${file.name} and requested print start.` : `Uploaded ${file.name} to printer storage.`;
+          input.value = "";
+          await refresh();
+        } catch (error) {
+          status.textContent = `Upload failed: ${error}`;
+        } finally {
+          button.disabled = false;
+        }
+      });
+    }
+
+    function setupCamera() {
+      const img = document.getElementById("camera-image");
+      const fallback = document.getElementById("camera-fallback");
+      img.style.display = "none";
+      img.onload = () => {
+        img.style.display = "block";
+        fallback.classList.add("hidden");
+      };
+      img.onerror = () => {
+        img.style.display = "none";
+        fallback.classList.remove("hidden");
+        fallback.textContent = "Camera not available right now.";
+      };
+      if (cameraEnabled) {
+        fallback.classList.remove("hidden");
+        fallback.textContent = "Loading camera stream...";
+        img.src = `/api/printers/${printerId}/camera`;
+      } else {
+        img.removeAttribute("src");
+        img.style.display = "none";
+        fallback.classList.remove("hidden");
+        fallback.textContent = "Camera is turned off.";
+      }
+    }
+
+    function setupCameraToggle() {
+      const toggle = document.getElementById("camera-toggle");
+      const label = document.getElementById("camera-toggle-label");
+      toggle.addEventListener("change", () => {
+        cameraEnabled = toggle.checked;
+        label.textContent = cameraEnabled ? "Camera On" : "Camera Off";
+        saveUiPrefs();
+        syncSettingsUi();
+        setupCamera();
+      });
+    }
+
+    async function sendJobCommand(action) {
+      const status = document.getElementById("job-action-status");
+      status.textContent = `${action === "pause" ? "Pausing" : "Resuming"} print...`;
+      try {
+        const res = await fetch(`/api/printers/${printerId}/${action}`, { method: "POST" });
+        if (!res.ok) throw new Error(`Request failed with ${res.status}`);
+        status.textContent = `${action === "pause" ? "Pause" : "Resume"} command sent.`;
+        setTimeout(() => {
+          if (status.textContent.endsWith("command sent.")) status.textContent = "";
+        }, 3000);
+        await refresh();
+      } catch (error) {
+        status.textContent = `Failed to ${action} print: ${error}`;
+      }
+    }
+
+    function setupJobActions() {
+      document.getElementById("pause-job-button").addEventListener("click", () => sendJobCommand("pause"));
+      document.getElementById("resume-job-button").addEventListener("click", () => sendJobCommand("resume"));
+    }
+
+    function setupViews() {
+      const config = {
+        dashboard: { heading: "Dashboard", subheading: "Dense monitoring panels and live printer controls." },
+        files: { heading: "File Browser", subheading: "Compact storage table with fast print and delete actions." },
+        devices: { heading: "Devices", subheading: "Printer identity, network status, and motion telemetry." },
+        activity: { heading: "Activity", subheading: "Recent actions and current sync status from the UI." },
+        settings: { heading: "Settings", subheading: "Local UI controls for refresh and camera behavior." }
+      };
+      document.querySelectorAll("[data-view]").forEach(button => {
+        button.addEventListener("click", () => {
+          const target = button.getAttribute("data-view");
+          document.querySelectorAll(".nav-item[data-view]").forEach(item => item.classList.toggle("active", item === button));
+          document.getElementById("view-dashboard").classList.toggle("hidden", target !== "dashboard");
+          document.getElementById("view-files").classList.toggle("hidden", target !== "files");
+          document.getElementById("view-devices").classList.toggle("hidden", target !== "devices");
+          document.getElementById("view-activity").classList.toggle("hidden", target !== "activity");
+          document.getElementById("view-settings").classList.toggle("hidden", target !== "settings");
+          text("page-heading", config[target].heading);
+          text("page-subheading", config[target].subheading);
+        });
+      });
+    }
+
+    function setupSettings() {
+      const autoRefreshToggle = document.getElementById("settings-auto-refresh");
+      const refreshIntervalSelect = document.getElementById("settings-refresh-interval");
+      const cameraDefaultToggle = document.getElementById("settings-camera-default");
+
+      autoRefreshToggle.addEventListener("change", () => {
+        autoRefreshEnabled = autoRefreshToggle.checked;
+        saveUiPrefs();
+        syncSettingsUi();
+        restartRefreshTimer();
+      });
+
+      refreshIntervalSelect.addEventListener("change", () => {
+        refreshIntervalMs = Number(refreshIntervalSelect.value) || 5000;
+        saveUiPrefs();
+        syncSettingsUi();
+        restartRefreshTimer();
+      });
+
+      cameraDefaultToggle.addEventListener("change", () => {
+        cameraEnabled = cameraDefaultToggle.checked;
+        saveUiPrefs();
+        syncSettingsUi();
+        setupCamera();
+      });
+    }
+
+    function setupFileFilters() {
+      document.querySelectorAll("[data-filter]").forEach(button => {
+        button.addEventListener("click", () => {
+          currentFilter = button.getAttribute("data-filter");
+          document.querySelectorAll("[data-filter]").forEach(chip => chip.classList.toggle("active", chip === button));
+          renderFiles();
+        });
+      });
+      document.getElementById("file-search").addEventListener("input", renderFiles);
+      document.getElementById("refresh-files-button").addEventListener("click", refresh);
+    }
+
+    async function refresh() {
+      if (refreshInFlight) return;
+      refreshInFlight = true;
+      setRefreshState("Refreshing printer data...", "syncing");
+      try {
+        const [listRes, infoRes, statusRes, progressRes, tempRes, filesRes] = await Promise.all([
+          fetch("/api/printers"),
+          fetch(`/api/printers/${printerId}/info`),
+          fetch(`/api/printers/${printerId}/status`),
+          fetch(`/api/printers/${printerId}/progress`),
+          fetch(`/api/printers/${printerId}/temperatures`),
+          fetch(`/api/printers/${printerId}/files`)
+        ]);
+        const printers = await listRes.json();
+        const info = await infoRes.json();
+        const status = await statusRes.json();
+        const progress = await progressRes.json();
+        const temps = await tempRes.json();
+        allFiles = await filesRes.json();
+        const printer = Array.isArray(printers) ? printers.find(p => p.name === printerId) || printers[0] : null;
+        const online = Boolean(printer && printer.is_online);
+        const layerPct = percent(progress.layer?.[0] || 0, progress.layer?.[1] || 0);
+        const bytePct = percent(progress.byte?.[0] || 0, progress.byte?.[1] || 0);
+        const nozzlePct = Math.max(0, Math.min(100, percent(Number(temps?.T0?.current || 0), Math.max(220, Number(temps?.T0?.target || 0), Number(temps?.T0?.current || 0), 1))));
+        textMany(["hero-printer", "devices-target"], printer ? printer.name : printerId);
+        text("hero-connection", online ? "Printer online" : "Printer offline");
+        text("hero-file", status.current_file || "Idle");
+        textMany(["machine-name", "devices-name"], info.name || "Flashforge");
+        textMany(["model-name", "devices-model"], info.model_name || "-");
+        textMany(["machine-firmware", "devices-firmware"], info.firmware_version || "-");
+        textMany(["machine-status", "devices-status", "job-status"], status.machine_status || "-");
+        textMany(["move-mode", "devices-move-mode"], status.move_mode || "-");
+        textMany(["mac-address", "devices-mac"], info.mac_addr || "-");
+        textMany(["tool-count", "devices-tool-count"], info.tool_count ?? "-");
+        textMany(["pos-x", "devices-pos-x"], info.position?.x ?? "-");
+        textMany(["pos-y", "devices-pos-y"], info.position?.y ?? "-");
+        textMany(["pos-z", "devices-pos-z"], info.position?.z ?? "-");
+        text("devices-network", online ? "Online" : "Offline");
+        const statusPill = document.getElementById("online-pill");
+        const sidebarOnline = document.getElementById("sidebar-online");
+        statusPill.textContent = online ? "Online" : "Offline";
+        sidebarOnline.textContent = online ? "Printer Connected" : "Printer Offline";
+        statusPill.className = `status-badge ${online ? "ready" : "error"}`;
+        sidebarOnline.className = `status-badge ${online ? "ready" : "error"}`;
+        text("layer-text", `${progress.layer?.[0] ?? 0} / ${progress.layer?.[1] ?? 0}`);
+        text("byte-text", `${progress.byte?.[0] ?? 0} / ${progress.byte?.[1] ?? 0}`);
+        setBar("layer-bar", layerPct);
+        setBar("byte-bar", bytePct);
+        textMany(["job-file", "activity-current-file"], status.current_file || "Idle");
+        textMany(["job-layer", "activity-layer"], `${progress.layer?.[0] ?? 0} / ${progress.layer?.[1] ?? 0}`);
+        textMany(["job-byte", "activity-byte"], `${progress.byte?.[0] ?? 0} / ${progress.byte?.[1] ?? 0}`);
+        text("job-temp-t0", temps.T0 ? `${Number(temps.T0.current).toFixed(1)} C / ${Number(temps.T0.target).toFixed(1)} C` : "-");
+        text("job-temp-b", temps.B ? `${Number(temps.B.current).toFixed(1)} C / ${Number(temps.B.target).toFixed(1)} C` : "-");
+        text("activity-file-action", lastFileAction);
+        const cpuValue = inferSystemMetric(bytePct, online ? 12 : 0);
+        const ramValue = inferSystemMetric(layerPct * 0.7, 18);
+        text("cpu-text", `${cpuValue}%`);
+        text("ram-text", `${ramValue}%`);
+        text("network-state", online ? "Connected" : "Disconnected");
+        setBar("cpu-bar", cpuValue);
+        setBar("ram-bar", ramValue);
+        updateNetworkChart(layerPct, nozzlePct);
+        const hasJob = Boolean(status.current_file);
+        document.getElementById("pause-job-button").disabled = !hasJob;
+        document.getElementById("resume-job-button").disabled = !hasJob;
+        renderTemps(temps);
+        renderFiles();
+        lastUpdatedAt = new Date();
+        updateLastUpdatedLabel();
+        setRefreshState("Live data is up to date");
+      } catch (error) {
+        setRefreshState("Refresh failed. Retrying automatically.", "error");
+        text("last-updated", String(error));
+      } finally {
+        refreshInFlight = false;
+      }
+    }
+
+    loadUiPrefs();
+    setupViews();
+    setupCameraToggle();
+    setupJobActions();
+    setupFileUpload();
+    setupFileFilters();
+    setupSettings();
+    syncSettingsUi();
+    setupCamera();
+    refresh();
+    restartRefreshTimer();
+    setInterval(updateLastUpdatedLabel, 1000);
+  </script>
+</body>
+</html>
