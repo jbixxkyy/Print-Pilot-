@@ -43,6 +43,10 @@ Use in Orca as:
 2. URL: `https://your-url` (do not add `/octoprint` manually if Orca appends `/api/...`)
 3. API key: value from `config.json -> auth.slicerApiKey`
 
+To disable Orca auth prompts completely:
+
+- set `auth.slicerRequireApiKey` to `false` in `config.json`
+
 If your Orca profile needs a custom path base, use:
 
 - Base URL: `https://your-url/octoprint`

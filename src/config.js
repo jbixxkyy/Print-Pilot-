@@ -16,6 +16,7 @@ function defaultConfig() {
       password: "change-me",
       loginRequired: true,
       slicerApiKey: "change-me-slicer-key",
+      slicerRequireApiKey: false,
     },
     printers: {},
   };
@@ -40,6 +41,9 @@ export function loadConfig() {
   }
   if (typeof config.auth.slicerApiKey !== "string") {
     config.auth.slicerApiKey = config.auth.password || defaultConfig().auth.slicerApiKey;
+  }
+  if (typeof config.auth.slicerRequireApiKey !== "boolean") {
+    config.auth.slicerRequireApiKey = defaultConfig().auth.slicerRequireApiKey;
   }
 
   return config;

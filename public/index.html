@@ -449,7 +449,15 @@
     🟢 TABLE / FILE BROWSER
     ========================================= */
     .files-toolbar, .files-toolbar-left, .files-toolbar-right, .upload-row, .file-actions, .setting-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .files-toolbar, .upload-row {
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: linear-gradient(180deg, rgba(20, 23, 28, 0.96), rgba(18, 21, 26, 0.96));
+      border-radius: 6px;
+      padding: 10px;
+    }
     .files-toolbar { justify-content: space-between; }
+    .files-toolbar-left { gap: 8px; }
+    .files-toolbar-right .toolbar-button { min-width: 92px; }
     .filter-chip { height: 32px; padding: 0 11px; font-size: 0.74rem; font-weight: 650; color: var(--muted); }
     .filter-chip.active {
       color: #eaf4ff;
@@ -457,7 +465,28 @@
       background: linear-gradient(180deg, rgba(66, 156, 255, 0.3), rgba(47, 129, 247, 0.14));
       box-shadow: 0 0 0 1px rgba(88, 166, 255, 0.12), 0 0 18px rgba(88, 166, 255, 0.16);
     }
-    .upload-row input[type="file"] { max-width: 320px; color: var(--muted); font-size: 0.75rem; }
+    .upload-row { gap: 12px; justify-content: flex-start; }
+    .upload-file-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .file-input-hidden { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .file-picker-btn { min-width: 108px; height: 34px; display: inline-flex; align-items: center; justify-content: center; }
+    .file-picked-name {
+      color: var(--muted);
+      font-size: 0.76rem;
+      max-width: 360px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .upload-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      min-height: 34px;
+    }
+    .upload-check input { accent-color: var(--accent); }
     .setting-row { justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.035); }
     .setting-row:last-child { border-bottom: 0; }
     .setting-copy { display: grid; gap: 4px; }
@@ -473,16 +502,27 @@
     .setting-control { padding: 0 10px; min-width: 72px; }
     .setting-select { padding: 0 8px; }
     .table-wrap { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: linear-gradient(180deg, rgba(25, 28, 33, 0.98), rgba(21, 24, 28, 0.98)); }
-    table { width: 100%; border-collapse: collapse; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     thead th { padding: 10px 12px; background: rgba(255, 255, 255, 0.016); border-bottom: 1px solid var(--line); color: var(--soft); text-align: left; font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; white-space: nowrap; }
+    thead th:nth-child(1) { width: 44%; }
+    thead th:nth-child(2) { width: 15%; }
+    thead th:nth-child(3) { width: 14%; }
+    thead th:nth-child(4) { width: 11%; }
+    thead th:nth-child(5) { width: 16%; }
     thead th:last-child, tbody td:last-child { text-align: right; }
     tbody tr { transition: background 120ms ease; }
     tbody tr:nth-child(even) { background: var(--row-alt); }
     tbody tr:hover { background: var(--row-hover); }
     tbody td { padding: 10px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.035); font-size: 0.76rem; color: var(--muted); vertical-align: middle; white-space: nowrap; }
     tbody tr:last-child td { border-bottom: 0; }
-    .file-name-cell { color: var(--text); font-weight: 650; max-width: 0; white-space: normal; }
+    .file-name-cell { color: var(--text); font-weight: 650; max-width: 0; white-space: normal; overflow: hidden; }
     .file-name-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .file-name-meta { min-width: 0; }
+    .file-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .file-thumb {
       width: 44px;
       height: 44px;
@@ -502,8 +542,8 @@
       display: block;
     }
     .file-icon { width: 22px; height: 22px; border-radius: 5px; flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.06); background: linear-gradient(180deg, rgba(88, 166, 255, 0.2), rgba(88, 166, 255, 0.08)), rgba(255, 255, 255, 0.03); display: inline-flex; align-items: center; justify-content: center; color: #dcebff; font-size: 0.64rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
-    .file-sub { margin-top: 2px; color: var(--soft); font-size: 0.7rem; font-weight: 500; }
-    .file-actions { justify-content: flex-end; }
+    .file-sub { margin-top: 2px; color: var(--soft); font-size: 0.7rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-actions { justify-content: flex-end; display: flex; gap: 8px; flex-wrap: nowrap; }
     .file-action { height: 28px; padding: 0 10px; font-size: 0.72rem; font-weight: 650; }
     .file-info-panel {
       border: 1px solid var(--line);
@@ -532,6 +572,37 @@
     }
     .empty-state { padding: 28px 20px; color: var(--muted); text-align: center; font-size: 0.78rem; }
     .footer-strip { color: var(--muted); font-size: 0.72rem; }
+
+    @media (min-width: 761px) {
+      #view-files .table-wrap tbody tr {
+        min-height: 72px;
+      }
+      #view-files .table-wrap tbody td {
+        vertical-align: top;
+        padding-top: 12px;
+        padding-bottom: 12px;
+      }
+      #view-files .table-wrap tbody td:not(.file-name-cell):not(.actions-cell) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #view-files .file-name-wrap {
+        align-items: flex-start;
+      }
+      #view-files .file-name-meta {
+        display: grid;
+        gap: 2px;
+      }
+      #view-files .status-badge {
+        max-width: 100%;
+      }
+      #view-files .file-actions {
+        align-items: center;
+      }
+      #view-files .file-action {
+        white-space: nowrap;
+      }
+    }
 
     /* =========================================
     UTILITIES / RESPONSIVE
@@ -625,7 +696,12 @@
       .control-buttons .btn:last-child { flex-basis: 100%; }
       .setting-row { gap: 8px; flex-direction: column; align-items: flex-start; }
       .setting-select, .setting-control { width: 100%; }
-      .upload-row input[type="file"] { max-width: 100%; width: 100%; }
+      .upload-file-wrap {
+        width: 100%;
+      }
+      .file-picked-name {
+        max-width: 100%;
+      }
       .footer-strip { flex-direction: column; align-items: flex-start; gap: 4px; }
       .more-grid { grid-template-columns: 1fr; }
       #view-files .files-toolbar,
@@ -706,6 +782,12 @@
       .file-name-wrap {
         width: 100%;
         align-items: flex-start;
+      }
+      .file-title {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        word-break: break-word;
       }
       .file-thumb {
         width: 38px;
@@ -820,8 +902,16 @@
                   </div>
                   <div class="files-toolbar-right"><button class="btn btn-secondary toolbar-button" id="refresh-files-button" type="button">Refresh</button></div>
                 </div>
-                <div style="height: 12px"></div>
-                <div class="upload-row"><input id="upload-file-input" type="file" accept=".3mf,.gcode,.gx,.g"><label><input id="upload-print-now" type="checkbox"><span>Print after upload</span></label><button class="btn btn-primary toolbar-button primary" id="upload-file-button" type="button">Upload</button></div>
+                <div style="height: 10px"></div>
+                <div class="upload-row">
+                  <div class="upload-file-wrap">
+                    <input id="upload-file-input" class="file-input-hidden" type="file" accept=".3mf,.gcode,.gx,.g">
+                    <label class="btn btn-secondary file-picker-btn" for="upload-file-input">Choose File</label>
+                    <span class="file-picked-name" id="upload-file-name">No file chosen</span>
+                  </div>
+                  <label class="upload-check"><input id="upload-print-now" type="checkbox"><span>Print after upload</span></label>
+                  <button class="btn btn-primary toolbar-button primary" id="upload-file-button" type="button">Upload</button>
+                </div>
                 <div style="height: 10px"></div>
                 <div class="action-status" id="upload-file-status"></div>
                 <div style="height: 10px"></div>
@@ -1428,8 +1518,10 @@
       });
     }
 
-    function getFileStatus(file) {
-      return file.is_active ? { label: "In Progress", className: "progress" } : { label: "Ready", className: "ready" };
+    function getFileStatus(file, hasActiveJob = false) {
+      if (file.is_active) return { label: "In Progress", className: "ready" };
+      if (hasActiveJob) return { label: "Not Ready", className: "error" };
+      return { label: "Ready", className: "ready" };
     }
 
     function inferFileTime(file) {
@@ -1461,7 +1553,8 @@
         panel.classList.add("hidden");
         return;
       }
-      const status = getFileStatus(file);
+      const hasActiveJob = allFiles.some(item => item.is_active);
+      const status = getFileStatus(file, hasActiveJob);
       text("file-info-title", `File Info: ${displayName}`);
       text("file-info-status", status.label);
       text("file-info-path", file.name || "-");
@@ -1472,10 +1565,13 @@
 
     function filteredFiles() {
       const query = document.getElementById("file-search")?.value?.trim().toLowerCase() || "";
+      const hasActiveJob = allFiles.some(file => file.is_active);
       return allFiles.filter(file => {
         const name = (file.name || "").toLowerCase();
         const matchesQuery = !query || name.includes(query);
-        const matchesFilter = currentFilter === "all" || (currentFilter === "active" && file.is_active) || (currentFilter === "ready" && !file.is_active);
+        const matchesFilter = currentFilter === "all"
+          || (currentFilter === "active" && file.is_active)
+          || (currentFilter === "ready" && !file.is_active && !hasActiveJob);
         return matchesQuery && matchesFilter;
       });
     }
@@ -1494,11 +1590,11 @@
       body.innerHTML = rows.map(file => {
         const displayName = (file.name || "").split("/").pop() || file.name || "Unknown file";
         const ext = displayName.includes(".") ? displayName.split(".").pop().slice(0, 3) : "JOB";
-        const status = getFileStatus(file);
+        const status = getFileStatus(file, hasActiveJob);
         const thumbUrl = `/api/printers/${printerId}/file-thumbnail?file_name=${encodeURIComponent(displayName)}&session_token=${encodeURIComponent(sessionToken || "")}`;
         const startDisabled = hasActiveJob && !file.is_active;
         const deleteDisabled = hasActiveJob;
-        return `<tr><td class="file-name-cell" data-label="Name"><div class="file-name-wrap"><div class="file-thumb"><img loading="lazy" src="${thumbUrl}" alt="${escapeHtml(displayName)}" data-thumb="${escapeHtml(displayName)}"><span class="file-icon hidden" data-fallback="${escapeHtml(displayName)}">${escapeHtml(ext)}</span></div><div><div>${escapeHtml(displayName)}</div><div class="file-sub">${file.is_active ? "Running on printer" : "Ready in local storage"}</div></div></div></td><td data-label="Status"><span class="status-badge ${status.className}">${status.label}</span></td><td data-label="Time">${inferFileTime(file)}</td><td data-label="Size">${inferFileSize(displayName)}</td><td class="actions-cell" data-label="Actions"><div class="file-actions"><button class="btn btn-primary file-action" type="button" data-action="start-file" data-file="${escapeHtml(displayName)}" ${startDisabled ? "disabled title=\"Printer already has an active job\"" : ""}>Print</button><button class="btn btn-danger file-action danger" type="button" data-action="delete-file" data-file="${escapeHtml(displayName)}" ${deleteDisabled ? "disabled title=\"Stop current print before deleting files\"" : ""}>Delete</button><button class="btn btn-secondary file-action" type="button" data-action="info" data-file="${escapeHtml(displayName)}">Info</button></div></td></tr>`;
+        return `<tr><td class="file-name-cell" data-label="Name"><div class="file-name-wrap"><div class="file-thumb"><img loading="lazy" src="${thumbUrl}" alt="${escapeHtml(displayName)}" data-thumb="${escapeHtml(displayName)}"><span class="file-icon hidden" data-fallback="${escapeHtml(displayName)}">${escapeHtml(ext)}</span></div><div class="file-name-meta"><div class="file-title">${escapeHtml(displayName)}</div><div class="file-sub">${file.is_active ? "Running on printer" : (hasActiveJob ? "Waiting for active job to finish" : "Ready in local storage")}</div></div></div></td><td data-label="Status"><span class="status-badge ${status.className}">${status.label}</span></td><td data-label="Time">${inferFileTime(file)}</td><td data-label="Size">${inferFileSize(displayName)}</td><td class="actions-cell" data-label="Actions"><div class="file-actions"><button class="btn btn-primary file-action" type="button" data-action="start-file" data-file="${escapeHtml(displayName)}" ${startDisabled ? "disabled title=\"Printer already has an active job\"" : ""}>Print</button><button class="btn btn-danger file-action danger" type="button" data-action="delete-file" data-file="${escapeHtml(displayName)}" ${deleteDisabled ? "disabled title=\"Stop current print before deleting files\"" : ""}>Delete</button><button class="btn btn-secondary file-action" type="button" data-action="info" data-file="${escapeHtml(displayName)}">Info</button></div></td></tr>`;
       }).join("");
       body.querySelectorAll("img[data-thumb]").forEach(img => {
         img.addEventListener("error", () => {
@@ -1551,9 +1647,16 @@
 
     function setupFileUpload() {
       const input = document.getElementById("upload-file-input");
+      const nameLabel = document.getElementById("upload-file-name");
       const printNow = document.getElementById("upload-print-now");
       const button = document.getElementById("upload-file-button");
       const status = document.getElementById("upload-file-status");
+      if (input && nameLabel) {
+        input.addEventListener("change", () => {
+          const file = input.files && input.files[0];
+          nameLabel.textContent = file ? file.name : "No file chosen";
+        });
+      }
       button.addEventListener("click", async () => {
         const file = input.files && input.files[0];
         if (!file) {
@@ -1579,6 +1682,7 @@
           lastFileAction = printNow.checked ? `Uploaded and queued ${file.name}` : `Uploaded ${file.name}`;
           status.textContent = printNow.checked ? `Uploaded ${file.name} and requested print start.` : `Uploaded ${file.name} to printer storage.`;
           input.value = "";
+          if (nameLabel) nameLabel.textContent = "No file chosen";
           await refresh();
         } catch (error) {
           status.textContent = `Upload failed: ${error}`;

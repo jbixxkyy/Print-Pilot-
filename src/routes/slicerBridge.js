@@ -39,6 +39,11 @@ export function createSlicerBridgeRouter(config) {
   }
 
   function requireApiKey(req, _res, next) {
+    if (config?.auth?.slicerRequireApiKey === false) {
+      next();
+      return;
+    }
+
     const expected = getConfiguredApiKey();
     if (!expected) {
       next(Object.assign(new Error("set auth.slicerApiKey or auth.password in config.json"), {
